@@ -17,11 +17,11 @@ type Login struct {
 	Password string `form:"password" json:"password" binding:"required"`
 }
 type User struct {
-	UserID   primitive.ObjectID `bson:"_id,omitempty" json:"userID"`
+	UserID   primitive.ObjectID `bson:"_id,omitempty" json:"userID,omitempty"`
 	Fullname string             `bson:"fullname" json:"fullname"`
 	Email    string             `bson:"email" json:"email"`
-	Password string             `bson:"password" json:"-"`
-	Token    string             `bson:"token" json:"token"`
+	Password string             `bson:"password" json:"password,omitempty"`
+	Token    string             `bson:"token" json:"token,omitempty"`
 }
 
 func (*User) Register(userData *User) (string, error) {
