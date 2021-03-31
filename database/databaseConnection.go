@@ -2,29 +2,36 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
-	// "os"
+
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectDatabase() *mongo.Client {
-	// var (
-	// 	HOST = os.Getenv("MONGODB_HOST")
-	// 	PORT = os.Getenv("MONGODB_PORT")
-	// )
+var DBClient *mongo.Client
+
+func Connect(){
+	var (
+		DEFAULT_HOST = os.Getenv("MONGODB_HOST")
+		DEFAULT_PORT = os.Getenv("MONGODB_PORT")
+	)
+	if DEFAULT_HOST == "" || DEFAULT_PORT == "" {
+		log.Panicf("Unable to load env variables")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://172.17.0.2:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(DEFAULT_HOST+`:`+DEFAULT_PORT))
 	if err != nil {
 		log.Panicf("Can not connect to database : %v", err)
 	}
-	return client
+	DBClient = client
 }
-func DisconnectDatabase(dbClient *mongo.Client) {
-	if err := dbClient.Disconnect(context.Background()); err != nil {
+func Disconnect() {
+	if err := DBClient.Disconnect(context.Background()); err != nil {
 		panic(err)
 	}
 }
