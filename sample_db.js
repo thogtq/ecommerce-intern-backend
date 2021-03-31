@@ -16,3 +16,23 @@ let categories = [
     category: "/electronics/embedded",
   },
 ];
+
+let order = {
+  orderID: ORDERID,
+  userID: userID,
+  subTOTAL: SUBTOTAL,
+  productsOrder: {
+    0: {
+      productID: PRODUCTID,
+      color: COLOR,
+      size: SIZE,
+      quantity: QUANTITY,
+    },
+    1: {
+      productID: PRODUCTID,
+      color: COLOR,
+      size: SIZE,
+      quantity: QUANTITY,
+    },
+  },
+};

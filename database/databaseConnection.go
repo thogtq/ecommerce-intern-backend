@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"os"
@@ -14,7 +13,7 @@ import (
 
 var DBClient *mongo.Client
 
-func Connect(){
+func Connect() {
 	var (
 		DEFAULT_HOST = os.Getenv("MONGODB_HOST")
 		DEFAULT_PORT = os.Getenv("MONGODB_PORT")
