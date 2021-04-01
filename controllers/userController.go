@@ -3,26 +3,24 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var userModel models.User
 
 func Regiser(c *gin.Context) {
-	newUser := &models.User{UserID: primitive.NilObjectID}
+	newUser := &models.User{}
+	c.BindJSON(newUser)
 	res, err := userModel.Register(newUser)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"status":  "error",
-			"message": "new user not added",
-			"debug":   err.Error(),
+			"message": err,
 		})
 		return
 	}
 	c.JSON(200, gin.H{
-		"status":  "posted",
-		"message": "new user added",
-		"userID":  res,
+		"status":  "success",
+		"data":    gin.H{"userID": res},
 	})
 }
 func Login(c *gin.Context) {
