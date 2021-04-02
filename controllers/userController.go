@@ -1,33 +1,44 @@
 package controllers
 
 import (
+	"context"
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/thogtq/ecommerce-server/dao"
+	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
 )
 
-var userModel models.User
+var userDAO dao.UserDAO
 
 func Regiser(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 	newUser := &models.User{}
+
 	c.BindJSON(newUser)
-	res, err := userModel.Register(newUser)
+	res, err := userDAO.Register(ctx, newUser)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"status":  "error",
-			"message": err,
-		})
+		c.JSON(400, errors.ErrorResponse(err))
 		return
 	}
-	c.JSON(200, gin.H{
-		"status":  "success",
-		"data":    gin.H{"userID": res},
-	})
+	c.JSON(200, SuccessResponse(gin.H{"userID": res}))
 }
 func Login(c *gin.Context) {
-	userLogin := &models.Login{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	userLogin := &models.UserLogin{}
+
 	c.BindJSON(userLogin)
-	c.JSON(200, gin.H{
-		"status": "success",
-		"data":   userLogin.Email + ` ` + userLogin.Password,
-	})
+	userObj, userToken, err := userDAO.Login(ctx, userLogin)
+	if err != nil {
+		c.JSON(400, errors.ErrorResponse(err))
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{
+		"user":         userObj,
+		"token":        userToken.AccessToken,
+		"refreshToken": userToken.RefreshToken,
+	}))
 }
