@@ -35,6 +35,8 @@ func Login(c *gin.Context) {
 	c.BindJSON(userLogin)
 	userObj, err := userDAO.Login(ctx, userLogin)
 	if err != nil {
+		//Fix me
+		//c.Error => handle in middleware => Reflect type of error(ClientErr,ServerErr)
 		c.JSON(400, errors.ErrorResponse(err))
 		return
 	}

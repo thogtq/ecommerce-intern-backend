@@ -19,8 +19,16 @@ func SetContextUserID(ctx *gin.Context, userID string) {
 }
 func GetContextUserID(ctx *gin.Context) (string, error) {
 	userID, err := ctx.Get("userID")
-	if err != true {
+	if !err {
 		return "", fmt.Errorf("can not get user id from context, userID field was not setted")
 	}
 	return userID.(string), nil
+}
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

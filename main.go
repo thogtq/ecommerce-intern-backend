@@ -21,14 +21,14 @@ func main() {
 	public := r.Group("/api")
 	public.Use()
 	{
-		routes.UserRoute(public)
-		public.Static("/product/image", "./files/images/products")
-		//routes.ProductRoute(public)
+		routes.UserPublicRoute(public)
+		routes.ProductPublicRoute(public)
 	}
 	authorized := r.Group("/api")
 	authorized.Use(middlewares.AuthRequired())
 	{
-		routes.UserAuthorizedRoute(authorized)
+		routes.UserPrivateRoute(authorized)
+		routes.ProductPrivateRoute(authorized)
 	}
 	r.Run(":8080")
 }
