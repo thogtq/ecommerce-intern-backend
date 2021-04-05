@@ -2,13 +2,13 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"mime/multipart"
 	"os"
 	"path"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/database"
+	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/helpers"
 	"github.com/thogtq/ecommerce-server/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -34,15 +34,13 @@ func (pd *ProductDAO) GetProductsByCategory(c context.Context, categoryName stri
 	findFilter := bson.M{"$or": bson.M{"categories": categoryName, "parentCategory": categoryName}}
 	cur, err := pd.productCollection.Find(c, findFilter)
 	if err != nil {
-		//error
-		return nil, fmt.Errorf("can not get product:%v", err)
+		return nil, errors.ErrInternal(err.Error())
 	}
 	for cur.Next(c) {
 		product := &models.Product{}
 		err := cur.Decode(product)
 		if err != nil {
-			//error
-			return nil, fmt.Errorf("can not decode data:%v", err)
+			return nil, errors.ErrInternal(err.Error())
 		}
 		productArray = append(productArray, *product)
 	}
@@ -57,14 +55,12 @@ func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Pro
 	pd.Init()
 	result, err := pd.productCollection.InsertOne(c, productObject)
 	if err != nil {
-		//error
-		return "", fmt.Errorf("product not inserted:%v", err)
+		return "", errors.ErrInternal(err.Error())
 	}
 	for _, image := range productObject.Images {
 		err := os.Rename(pd.productImageTempDir+image, pd.productImageDir+image)
 		if err != nil {
-			//error
-			return "", fmt.Errorf("error when move temp image:%v", err)
+			return "", errors.ErrInternal(err.Error())
 		}
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
@@ -75,8 +71,7 @@ func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (s
 	file.Filename = helpers.GenerateUUID() + path.Ext(file.Filename)
 	err := c.SaveUploadedFile(file, pd.productImageTempDir+file.Filename)
 	if err != nil {
-		//error
-		return "", err
+		return "", errors.ErrInternal(err.Error())
 	}
 	return file.Filename, nil
 }

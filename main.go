@@ -17,6 +17,7 @@ func main() {
 	r := gin.Default()
 	//Middlewares
 	r.Use(middlewares.CORSMiddleware())
+	r.Use(middlewares.ErrorHandle())
 	//Group
 	public := r.Group("/api")
 	public.Use()

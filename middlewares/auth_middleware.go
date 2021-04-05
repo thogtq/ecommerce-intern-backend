@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/controllers"
 	"github.com/thogtq/ecommerce-server/errors"
@@ -14,10 +12,10 @@ func AuthRequired() gin.HandlerFunc {
 		clientToken := c.Request.Header.Get(("token"))
 		claims, err := helpers.ValidateToken(clientToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, errors.ErrorResponse(errors.ErrUnauthorized))
+			c.Error(errors.ErrUnauthorized)
+			c.Abort()
 			return
 		}
-		_ = claims
 		controllers.SetContextUserID(c, claims.UserID)
 		c.Next()
 	}

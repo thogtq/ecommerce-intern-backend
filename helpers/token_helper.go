@@ -32,11 +32,11 @@ func GenerateTokens(userID, email string) (string, string, error) {
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.ErrInternal(err.Error())
 	}
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.ErrInternal(err.Error())
 	}
 	return token, refreshToken, nil
 }
@@ -52,7 +52,7 @@ func ValidateToken(signedToken string) (*SignedDetails, error) {
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrInternal(err.Error())
 	}
 	claims, ok := token.Claims.(*SignedDetails)
 	if !ok {

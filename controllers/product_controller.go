@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"fmt"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/dao"
+	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
 )
 
@@ -18,43 +20,29 @@ func CreateProduct(c *gin.Context) {
 	productData.CreatedAt = time.Now()
 	res, err := productDAO.InsertProduct(c, productData)
 	if err != nil {
-		//error
-		c.JSON(400, gin.H{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		c.Error(err)
 		return
 	}
-	//Fix me
-	c.JSON(200, gin.H{
-		"status":    "posted",
-		"message":   "product added",
-		"productID": res,
-	})
+	c.JSON(200, SuccessResponse(gin.H{"productID": res}))
 }
 func UploadProductImage(c *gin.Context) {
 	file, err := c.FormFile("productImage")
+	if err != nil {
+		fmt.Printf("%v", err.Error())
+		c.Error(errors.ErrNoFile)
+		return
+	}
 	file.Filename = strings.ToLower(file.Filename)
 	fileExt := path.Ext(file.Filename)
 	acceptedExt := []string{".jpg", ".png", ".jpeg", ".gif"}
 	if !contains(acceptedExt, fileExt) {
-		//error
-		c.JSON(400, "Invalid file type")
-		return
-	}
-	if err != nil {
-		//error
-		c.JSON(400, err.Error())
+		c.Error(errors.ErrInvalidExtension)
 		return
 	}
 	fileName, err := productDAO.UploadImage(c, file)
 	if err != nil {
-		//error
-		c.JSON(400, err.Error())
+		c.Error(err)
 		return
 	}
-	c.JSON(200, gin.H{
-		"status":   "success",
-		"fileName": fileName,
-	})
+	c.JSON(200, SuccessResponse(gin.H{"fileName": fileName}))
 }

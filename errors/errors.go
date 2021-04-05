@@ -1,46 +1,82 @@
 package errors
 
-import (
-	"errors"
-)
-
-//Mapping error code, http code , message<-client
-
-var (
-	// ErrInternal = &ServerError{
-	// 	ErrCode: "INTERNAL_ERROR",
-	// 	ErrMsg:  "Internal server error",
-	// }
-	// ErrEmailExisted_ = &ClientError{
-	// 	ErrCode: "EMAIL_EXISTED",
-	// 	ErrMsg:  "Email address have been existed!",
-	// }
-	ErrEmailExisted    = errors.New("EMAIL_EXISTED")
-	ErrInvalidPassword = errors.New("INVALID_PASSWORD")
-	ErrEmailNotFound   = errors.New("EMAIL_NOT_FOUND")
-)
-var (
-	ErrUnauthorized = errors.New("UNAUTHORIZED")
-	ErrInvalidToken = errors.New("INVALID_TOKEN")
-	ErrExpiredToken = errors.New("EXPIRED_TOKEN")
-)
-
 type H map[string]interface{}
+type error interface {
+	Error() string
+	GetMsg() string
+}
+type ClientError struct {
+	ErrCode string
+	ErrMsg  string
+}
 
-//Status error
-// func ErrorResponse_(err interface{},) H {
-// 	return H{
-// 		"status": "error",
-// 		"error": H{
-// 			"code":    err.Err(),
-// 			"message": err.Msg,
-// 		},
-// 	}
-// }
+func (ce ClientError) Error() string {
+	return ce.ErrCode
+}
+func (ce ClientError) GetMsg() string {
+	return ce.ErrMsg
+}
 
-func ErrorResponse(ErrCode error) H {
+type ServerError struct {
+	ErrCode string
+	ErrMsg  string
+}
+
+func (se ServerError) Error() string {
+	return se.ErrCode
+}
+func (se ServerError) GetMsg() string {
+	return se.ErrMsg
+}
+
+func ErrorResponse(err error) H {
 	return H{
-		"status":  "error",
-		"message": ErrCode.Error(),
+		"status": "error",
+		"error": H{
+			"code":    err.Error(),
+			"message": err.GetMsg(),
+		},
+	}
+}
+
+var (
+	ErrEmailExisted = &ClientError{
+		ErrCode: "EMAIL_EXISTED",
+		ErrMsg:  "Email address have been existed",
+	}
+	ErrInvalidPassword = &ClientError{
+		ErrCode: "INVALID_PASSWORD",
+		ErrMsg:  "Invalid password",
+	}
+	ErrEmailNotFound = &ClientError{
+		ErrCode: "EMAIL_NOT_FOUND",
+		ErrMsg:  "Email address not found",
+	}
+	ErrUnauthorized = &ClientError{
+		ErrCode: "UNAUTHORIZED",
+		ErrMsg:  "Unauthorized access",
+	}
+	ErrInvalidToken = &ClientError{
+		ErrCode: "INVALID_TOKEN",
+		ErrMsg:  "Your token is invalid",
+	}
+	ErrExpiredToken = &ClientError{
+		ErrCode: "EXPIRED_TOKEN",
+		ErrMsg:  "Your token is expired",
+	}
+	ErrInvalidExtension = &ClientError{
+		ErrCode: "INVALID_FILE_EXTENSION",
+		ErrMsg:  "Invalid file extension",
+	}
+	ErrNoFile = &ClientError{
+		ErrCode: "NO_FILE",
+		ErrMsg:  "No file received",
+	}
+)
+
+func ErrInternal(msg string) *ServerError {
+	return &ServerError{
+		ErrCode: "INTERNAL_ERROR",
+		ErrMsg:  msg,
 	}
 }

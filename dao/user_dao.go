@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"log"
 
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/errors"
@@ -31,7 +30,7 @@ func (ud *UserDAO) CreateUser(ctx context.Context, userData *models.User) (inser
 	userData.Role = "user"
 	res, err := ud.userCollection.InsertOne(ctx, userData)
 	if err != nil {
-		log.Panic(err)
+		return "", errors.ErrInternal(err.Error())
 	}
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
@@ -39,8 +38,12 @@ func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user
 	ud.Init()
 	user = &models.User{}
 	result := ud.userCollection.FindOne(ctx, bson.M{"email": loginData.Email})
-	if err := result.Decode(user); err == mongo.ErrNoDocuments {
+	err = result.Decode(user)
+	if err == mongo.ErrNoDocuments {
 		return nil, errors.ErrEmailNotFound
+	}
+	if err != nil {
+		return nil, errors.ErrInternal(err.Error())
 	}
 	if checkPassword := user.VerifyPassword(user.Password, loginData.Password); !checkPassword {
 		return nil, errors.ErrInvalidPassword
@@ -54,13 +57,13 @@ func (ud *UserDAO) GetUserByUserID(ctx context.Context, userID string) (user *mo
 	user = &models.User{}
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrInternal(err.Error())
 	}
 	options := options.FindOne()
 	options.Projection = bson.M{"password": 0}
 	result := ud.userCollection.FindOne(ctx, bson.M{"_id": objectID}, options)
 	if err := result.Decode(user); err != nil {
-		log.Panic(err)
+		errors.ErrInternal(err.Error())
 	}
 	return user, nil
 }
