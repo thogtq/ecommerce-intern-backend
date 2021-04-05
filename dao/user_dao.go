@@ -2,54 +2,65 @@ package dao
 
 import (
 	"context"
+	"log"
 
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/errors"
-	"github.com/thogtq/ecommerce-server/helpers"
 	"github.com/thogtq/ecommerce-server/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserDAO struct {
-	UserCollection *mongo.Collection
+	userCollection *mongo.Collection
 }
 
 func (ud *UserDAO) Init() {
-	ud.UserCollection = database.DBClient.Database("ecommerce").Collection("users")
+	ud.userCollection = database.DBClient.Database("ecommerce").Collection("users")
 }
 
-func (ud *UserDAO) Register(ctx context.Context, userData *models.User) (insertID string, err error) {
+func (ud *UserDAO) CreateUser(ctx context.Context, userData *models.User) (insertID string, err error) {
 	ud.Init()
 	user := models.User{}
-
-	if checkEmail := user.CheckIfEmailExist(ctx, ud.UserCollection, userData.Email); checkEmail {
+	if checkEmail := user.CheckIfEmailExist(ctx, ud.userCollection, userData.Email); checkEmail {
 		return "", errors.ErrEmailExisted
 	}
 	userData.Password = user.HashPassword(userData.Password)
-	res, err := ud.UserCollection.InsertOne(ctx, userData)
+	userData.Role = "user"
+	res, err := ud.userCollection.InsertOne(ctx, userData)
 	if err != nil {
-		return "", errors.ErrNotInserted
+		log.Panic(err)
 	}
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
-func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user *models.User, token *models.UserToken, err error) {
+func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user *models.User, err error) {
 	ud.Init()
-	token = &models.UserToken{}
 	user = &models.User{}
-
-	result := ud.UserCollection.FindOne(ctx, bson.M{"email": loginData.Email})
+	result := ud.userCollection.FindOne(ctx, bson.M{"email": loginData.Email})
 	if err := result.Decode(user); err == mongo.ErrNoDocuments {
-		return nil, nil, errors.ErrEmailNotExisted
+		return nil, errors.ErrEmailNotFound
 	}
 	if checkPassword := user.VerifyPassword(user.Password, loginData.Password); !checkPassword {
-		return nil, nil, errors.ErrInvalidPassword
-	}
-	token.AccessToken, token.RefreshToken, err = helpers.GenerateTokens(user.UserID.Hex(), user.Email)
-	if err != nil {
-		return nil, nil, errors.ErrTokenNotGenerated
+		return nil, errors.ErrInvalidPassword
 	}
 	user.Password = ""
-	return user, token, nil
+	return user, nil
+}
+
+func (ud *UserDAO) GetUserByUserID(ctx context.Context, userID string) (user *models.User, err error) {
+	ud.Init()
+	user = &models.User{}
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+	options := options.FindOne()
+	options.Projection = bson.M{"password": 0}
+	result := ud.userCollection.FindOne(ctx, bson.M{"_id": objectID}, options)
+	if err := result.Decode(user); err != nil {
+		log.Panic(err)
+	}
+	return user, nil
 }

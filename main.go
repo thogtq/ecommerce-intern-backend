@@ -1,9 +1,6 @@
 package main
 
 import (
-	// "context"
-	// "fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/subosito/gotenv"
 	"github.com/thogtq/ecommerce-server/database"
@@ -20,9 +17,18 @@ func main() {
 	r := gin.Default()
 	//Middlewares
 	r.Use(middlewares.CORSMiddleware())
-	//Routes
-	routes.UserRoute(r)
-	routes.ProductRoute(r)
-	r.Static("/files/images", "./files/images/")
+	//Group
+	public := r.Group("/api")
+	public.Use()
+	{
+		routes.UserRoute(public)
+		public.Static("/product/image", "./files/images/products")
+		//routes.ProductRoute(public)
+	}
+	authorized := r.Group("/api")
+	authorized.Use(middlewares.AuthRequired())
+	{
+		routes.UserAuthorizedRoute(authorized)
+	}
 	r.Run(":8080")
 }

@@ -14,6 +14,7 @@ type User struct {
 	Fullname string             `bson:"fullname" json:"fullname"`
 	Email    string             `bson:"email" json:"email"`
 	Password string             `bson:"password" json:"password,omitempty"`
+	Role     string             `bson:"role" json:"role,omitempty"`
 }
 type UserToken struct {
 	AccessToken  string

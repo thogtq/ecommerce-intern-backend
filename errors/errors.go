@@ -3,11 +3,15 @@ package errors
 import "errors"
 
 var (
-	ErrEmailExisted      = errors.New("EMAIL_EXISTED")
-	ErrEmailNotExisted   = errors.New("EMAIL_NOT_EXISTED")
-	ErrInvalidPassword   = errors.New("INVALID_PASSWORD")
-	ErrNotInserted       = errors.New("NOT_INSERTED")
-	ErrTokenNotGenerated = errors.New("TOKEN_NOT_GENERATED")
+	Err                = errors.New("")
+	ErrEmailExisted    = errors.New("EMAIL_EXISTED")
+	ErrInvalidPassword = errors.New("INVALID_PASSWORD")
+	ErrEmailNotFound   = errors.New("EMAIL_NOT_FOUND")
+)
+var (
+	ErrUnauthorized = errors.New("UNAUTHORIZED")
+	ErrInvalidToken = errors.New("INVALID_TOKEN")
+	ErrExpiredToken = errors.New("EXPIRED_TOKEN")
 )
 
 type H map[string]interface{}
