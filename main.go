@@ -15,9 +15,11 @@ func main() {
 	database.Connect()
 	defer database.Disconnect()
 	r := gin.Default()
+	//
 	//Middlewares
 	r.Use(middlewares.CORSMiddleware())
-	r.Use(middlewares.ErrorHandle())
+	r.Use(middlewares.ErrorHandler())
+	r.Use(middlewares.ContextHandler())
 	//Group
 	public := r.Group("/api")
 	public.Use()
@@ -30,6 +32,11 @@ func main() {
 	{
 		routes.UserPrivateRoute(authorized)
 		routes.ProductPrivateRoute(authorized)
+	}
+	admin := r.Group("/api")
+	admin.Use(middlewares.AdminAuthRequired())
+	{
+		routes.UserAdminRoute(admin)
 	}
 	r.Run(":8080")
 }

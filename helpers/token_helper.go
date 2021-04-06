@@ -11,10 +11,11 @@ import (
 
 type SignedDetails struct {
 	UserID string
+	Role string
 	jwt.StandardClaims
 }
 
-func GenerateTokens(userID, email string) (string, string, error) {
+func GenerateTokens(userID, role string) (string, string, error) {
 	SECRET_KEY := os.Getenv("JWT_SECRET")
 	if SECRET_KEY == "" {
 		log.Panicf("unable to load jwt secret key")

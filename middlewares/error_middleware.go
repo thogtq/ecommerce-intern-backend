@@ -5,7 +5,7 @@ import (
 	"github.com/thogtq/ecommerce-server/errors"
 )
 
-func ErrorHandle() gin.HandlerFunc {
+func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		err := c.Errors.Last()

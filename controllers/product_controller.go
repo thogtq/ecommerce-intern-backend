@@ -18,7 +18,7 @@ func CreateProduct(c *gin.Context) {
 	productData := &models.Product{}
 	c.BindJSON(productData)
 	productData.CreatedAt = time.Now()
-	res, err := productDAO.InsertProduct(c, productData)
+	res, err := productDAO.InsertProduct(c.Request.Context(), productData)
 	if err != nil {
 		c.Error(err)
 		return

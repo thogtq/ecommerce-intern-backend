@@ -20,3 +20,16 @@ func AuthRequired() gin.HandlerFunc {
 		c.Next()
 	}
 }
+func AdminAuthRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientToken := c.Request.Header.Get(("token"))
+		claims, err := helpers.ValidateToken(clientToken)
+		if err != nil || claims.Role != "admin" {
+			c.Error(errors.ErrUnauthorized)
+			c.Abort()
+			return
+		}
+		controllers.SetContextUserID(c, claims.UserID)
+		c.Next()
+	}
+}

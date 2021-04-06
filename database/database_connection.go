@@ -14,6 +14,8 @@ import (
 var DBClient *mongo.Client
 
 func Connect() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	var (
 		DEFAULT_HOST = os.Getenv("MONGODB_HOST")
 		DEFAULT_PORT = os.Getenv("MONGODB_PORT")
@@ -21,8 +23,6 @@ func Connect() {
 	if DEFAULT_HOST == "" || DEFAULT_PORT == "" {
 		log.Panicf("unable to load env variables")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(DEFAULT_HOST+`:`+DEFAULT_PORT))
 	if err != nil {
 		log.Panicf("can not connect to database : %v", err)
