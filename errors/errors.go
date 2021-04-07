@@ -2,83 +2,86 @@ package errors
 
 type H map[string]interface{}
 
-//Fix me
-type error interface {
-	Error() string
-	GetMsg() string
-}
-type ClientError struct {
-	ErrCode string
-	ErrMsg  string
+type AppError struct {
+	HttpCode int
+	Code     string
+	Message  string
 }
 
-func (ce ClientError) Error() string {
-	return ce.ErrCode
-}
-func (ce ClientError) GetMsg() string {
-	return ce.ErrMsg
-}
+const INTERNAL_ERROR_CODE = "INTERNAL_ERROR"
 
-type ServerError struct {
-	ErrCode string
-	ErrMsg  string
+func (se AppError) Error() string {
+	return se.Message
 }
-
-func (se ServerError) Error() string {
-	return se.ErrCode
-}
-func (se ServerError) GetMsg() string {
-	return se.ErrMsg
-}
-
 func ErrorResponse(err error) H {
-	return H{
-		"status": "error",
-		"error": H{
-			"code":    err.Error(),
-			"message": err.GetMsg(),
-		},
+	switch err.(type) {
+	case *AppError:
+		return H{
+			"status": "error",
+			"error": H{
+				"code":    err.(*AppError).Code,
+				"message": err.(*AppError).Message,
+			},
+		}
+	default:
+		return H{
+			"status": "error",
+			"error": H{
+				"code":    INTERNAL_ERROR_CODE,
+				"message": err.Error(),
+			},
+		}
 	}
+
 }
 
 var (
-	ErrEmailExisted = &ClientError{
-		ErrCode: "EMAIL_EXISTED",
-		ErrMsg:  "Email address have been existed",
+	ErrEmailExisted = &AppError{
+		HttpCode: 400,
+		Code:     "EMAIL_EXISTED",
+		Message:  "Email address have been existed",
 	}
-	ErrInvalidPassword = &ClientError{
-		ErrCode: "INVALID_PASSWORD",
-		ErrMsg:  "Invalid password",
+	ErrInvalidPassword = &AppError{
+		HttpCode: 400,
+		Code:     "INVALID_PASSWORD",
+		Message:  "Invalid password",
 	}
-	ErrEmailNotFound = &ClientError{
-		ErrCode: "EMAIL_NOT_FOUND",
-		ErrMsg:  "Email address not found",
+	ErrEmailNotFound = &AppError{
+		HttpCode: 400,
+		Code:     "EMAIL_NOT_FOUND",
+		Message:  "Email address not found",
 	}
-	ErrUnauthorized = &ClientError{
-		ErrCode: "UNAUTHORIZED",
-		ErrMsg:  "Unauthorized access",
+	ErrUnauthorized = &AppError{
+		HttpCode: 400,
+		Code:     "UNAUTHORIZED",
+		Message:  "Unauthorized access",
 	}
-	ErrInvalidToken = &ClientError{
-		ErrCode: "INVALID_TOKEN",
-		ErrMsg:  "Your token is invalid",
+	ErrInvalidToken = &AppError{
+		HttpCode: 400,
+		Code:     "INVALID_TOKEN",
+		Message:  "Your token is invalid",
 	}
-	ErrExpiredToken = &ClientError{
-		ErrCode: "EXPIRED_TOKEN",
-		ErrMsg:  "Your token is expired",
+	ErrExpiredToken = &AppError{
+		HttpCode: 400,
+		Code:     "EXPIRED_TOKEN",
+		Message:  "Your token is expired",
 	}
-	ErrInvalidExtension = &ClientError{
-		ErrCode: "INVALID_FILE_EXTENSION",
-		ErrMsg:  "Invalid file extension",
+	ErrInvalidExtension = &AppError{
+		HttpCode: 400,
+		Code:     "INVALID_FILE_EXTENSION",
+		Message:  "Invalid file extension",
 	}
-	ErrNoFile = &ClientError{
-		ErrCode: "NO_FILE",
-		ErrMsg:  "No file received",
+	ErrNoFile = &AppError{
+		HttpCode: 400,
+		Code:     "NO_FILE",
+		Message:  "No file received",
 	}
 )
 
-func ErrInternal(msg string) *ServerError {
-	return &ServerError{
-		ErrCode: "INTERNAL_ERROR",
-		ErrMsg:  msg,
+func ErrInternal(msg string) *AppError {
+	return &AppError{
+		HttpCode: 500,
+		Code:     INTERNAL_ERROR_CODE,
+		Message:  msg,
 	}
 }

@@ -12,11 +12,11 @@ func ErrorHandler() gin.HandlerFunc {
 		if err == nil {
 			return
 		}
-		switch t:= err.Err.(type) {
-		case *errors.ClientError:
-			c.JSON(400, errors.ErrorResponse(t))
-		case *errors.ServerError:
-			c.JSON(500, errors.ErrorResponse(t))
+		switch t := err.Err.(type) {
+		case *errors.AppError:
+			c.JSON(t.HttpCode, errors.ErrorResponse(t))
+		default:
+			c.JSON(500, errors.ErrInternal(err.Error()))
 		}
 	}
 }
