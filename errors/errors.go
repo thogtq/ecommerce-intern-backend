@@ -1,6 +1,8 @@
 package errors
 
 type H map[string]interface{}
+
+//Fix me
 type error interface {
 	Error() string
 	GetMsg() string

@@ -25,6 +25,8 @@ type UserLogin struct {
 	Password string `form:"password" json:"password" binding:"required"`
 }
 
+//Fix me
+//Move to service
 func (*User) HashPassword(userPassword string) (hashedPassword string) {
 	bytes, _ := bcrypt.GenerateFromPassword([]byte(userPassword), 14)
 	return string(bytes)
