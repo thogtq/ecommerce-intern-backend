@@ -14,21 +14,23 @@ func (se AppError) Error() string {
 	return se.Message
 }
 func ErrorResponse(err error) H {
-	switch err.(type) {
+	switch t := err.(type) {
 	case *AppError:
 		return H{
 			"status": "error",
 			"error": H{
-				"code":    err.(*AppError).Code,
-				"message": err.(*AppError).Message,
+				"httpCode": t.HttpCode,
+				"code":     t.Code,
+				"message":  t.Message,
 			},
 		}
 	default:
 		return H{
 			"status": "error",
 			"error": H{
-				"code":    INTERNAL_ERROR_CODE,
-				"message": err.Error(),
+				"httpCode": 500,
+				"code":     INTERNAL_ERROR_CODE,
+				"message":  err.Error(),
 			},
 		}
 	}
