@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"path"
 	"strings"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/thogtq/ecommerce-server/dao"
 	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
+	"github.com/thogtq/ecommerce-server/services"
 )
 
 var productDAO dao.ProductDAO
@@ -17,6 +17,7 @@ var productDAO dao.ProductDAO
 func CreateProduct(c *gin.Context) {
 	productData := &models.Product{}
 	c.BindJSON(productData)
+	productData.ParentCategories = services.GetParentCategories(productData.Categories)
 	productData.CreatedAt = time.Now()
 	res, err := productDAO.InsertProduct(c.Request.Context(), productData)
 	if err != nil {
@@ -28,7 +29,6 @@ func CreateProduct(c *gin.Context) {
 func UploadProductImage(c *gin.Context) {
 	file, err := c.FormFile("productImage")
 	if err != nil {
-		fmt.Printf("%v", err.Error())
 		c.Error(errors.ErrNoFile)
 		return
 	}

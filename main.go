@@ -31,12 +31,12 @@ func main() {
 	authorized.Use(middlewares.AuthRequired())
 	{
 		routes.UserPrivateRoute(authorized)
-		routes.ProductPrivateRoute(authorized)
 	}
 	admin := r.Group("/api")
 	admin.Use(middlewares.AdminAuthRequired())
 	{
 		routes.UserAdminRoute(admin)
+		routes.ProductAdminRoute(admin)
 	}
 	r.Run(":8080")
 }

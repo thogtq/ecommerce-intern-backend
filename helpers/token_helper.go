@@ -11,7 +11,7 @@ import (
 
 type SignedDetails struct {
 	UserID string
-	Role string
+	Role   string
 	jwt.StandardClaims
 }
 
@@ -22,6 +22,7 @@ func GenerateTokens(userID, role string) (string, string, error) {
 	}
 	claims := &SignedDetails{
 		UserID: userID,
+		Role:   role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},

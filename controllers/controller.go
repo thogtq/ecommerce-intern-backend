@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
+	"github.com/thogtq/ecommerce-server/errors"
 )
 
 type H map[string]interface{}
@@ -20,7 +19,7 @@ func SetContextUserID(ctx *gin.Context, userID string) {
 func GetContextUserID(ctx *gin.Context) (string, error) {
 	userID, err := ctx.Get("userID")
 	if !err {
-		return "", fmt.Errorf("can not get user id from context, userID field was not setted")
+		return "", errors.ErrInternal("field userID in context not found")
 	}
 	return userID.(string), nil
 }
