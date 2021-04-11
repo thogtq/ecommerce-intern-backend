@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ProductDAO struct {
@@ -28,11 +29,16 @@ func (pd *ProductDAO) Init() {
 	pd.productImageDir = "./files/images/products/"
 }
 
-func (pd *ProductDAO) GetProductsByCategory(c context.Context, categoryName string) (*[]models.Product, error) {
+func (pd *ProductDAO) GetProducts(c context.Context, filters *models.ProductFilters) (*[]models.Product, error) {
 	pd.Init()
 	productArray := []models.Product{}
-	findFilter := bson.M{"$or": bson.M{"categories": categoryName, "parentCategory": categoryName}}
-	cur, err := pd.productCollection.Find(c, findFilter)
+	findFilter := bson.M{}
+	findOptions := options.Find()
+	if filters.Sort != "" {
+		findOptions.SetSort(bson.D{{filters.Sort, -1}})
+	}
+	//if filters.
+	cur, err := pd.productCollection.Find(c, findFilter, findOptions)
 	if err != nil {
 		return nil, errors.ErrInternal(err.Error())
 	}

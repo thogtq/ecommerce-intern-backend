@@ -46,3 +46,16 @@ func UploadProductImage(c *gin.Context) {
 	}
 	c.JSON(200, SuccessResponse(gin.H{"fileName": fileName}))
 }
+func GetProducts(c *gin.Context) {
+	filters := &models.ProductFilters{
+		Sort:     c.Request.URL.Query().Get("sort"),
+		Search:   c.Request.URL.Query().Get("search"),
+		Category: c.Request.URL.Query().Get("category"),
+	}
+	products,err:=productDAO.GetProducts(c,filters)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"products": products}))
+}

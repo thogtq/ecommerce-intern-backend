@@ -24,3 +24,8 @@ type Product struct {
 	Sold             int                `bson:"sold" json:"sold"`
 	Description      string             `bson:"description" json:"description"`
 }
+type ProductFilters struct {
+	Sort     string
+	Search   string
+	Category string
+}
