@@ -25,6 +25,8 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"productID": res}))
+	//Fix me
+	//Handle empty images
 }
 func UploadProductImage(c *gin.Context) {
 	file, err := c.FormFile("productImage")
@@ -45,6 +47,8 @@ func UploadProductImage(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"fileName": fileName}))
+	//Fix me
+	//Response URL
 }
 func GetProducts(c *gin.Context) {
 	filters := &models.ProductFilters{
@@ -52,7 +56,7 @@ func GetProducts(c *gin.Context) {
 		Search:   c.Request.URL.Query().Get("search"),
 		Category: c.Request.URL.Query().Get("category"),
 	}
-	products,err:=productDAO.GetProducts(c,filters)
+	products, err := productDAO.GetProducts(c, filters)
 	if err != nil {
 		c.Error(err)
 		return

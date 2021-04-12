@@ -24,7 +24,12 @@ func AdminAuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientToken := c.Request.Header.Get(("token"))
 		claims, err := helpers.ValidateToken(clientToken)
-		if err != nil || claims.Role != "admin" {
+		if err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+		if claims.Role != "admin" {
 			c.Error(errors.ErrUnauthorized)
 			c.Abort()
 			return
