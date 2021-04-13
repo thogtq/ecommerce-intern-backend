@@ -8,6 +8,7 @@ import (
 func ProductPublicRoute(r *gin.RouterGroup) {
 	//Static == GET
 	r.GET("/products/", controllers.GetProducts)
+	r.GET("/product/", controllers.GetProduct)
 	r.Static("/product/image", "./files/images/products")
 	r.Static("/product/temp/", "./files/images/temp")
 }

@@ -78,6 +78,11 @@ var (
 		Code:     "NO_FILE",
 		Message:  "No file received",
 	}
+	ErrProductNotFound = &AppError{
+		HttpCode: 400,
+		Code:     "PRODUCT_NOT_FOUND",
+		Message:  "Product not found",
+	}
 )
 
 func ErrInternal(msg string) *AppError {

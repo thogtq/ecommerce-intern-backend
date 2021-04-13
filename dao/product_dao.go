@@ -53,8 +53,21 @@ func (pd *ProductDAO) GetProducts(c context.Context, filters *models.ProductFilt
 	return &productArray, nil
 }
 
-func (pd *ProductDAO) GetProductByID(c context.Context, productID string) (*models.Product, error) {
-	return nil, nil
+func (pd *ProductDAO) GetProductByID(c context.Context, productID primitive.ObjectID) (*models.Product, error) {
+	pd.Init()
+	product := &models.Product{}
+	filter := bson.M{"_id": productID}
+	result := pd.productCollection.FindOne(c, filter)
+	if result.Err() == mongo.ErrNoDocuments {
+		return nil, errors.ErrProductNotFound
+	}
+	if result.Err() != nil {
+		return nil, errors.ErrInternal(result.Err().Error())
+	}
+	if err := result.Decode(product); err != nil {
+		return nil, errors.ErrInternal(err.Error())
+	}
+	return product, nil
 }
 
 func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Product) (string, error) {

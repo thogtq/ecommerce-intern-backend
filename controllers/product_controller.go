@@ -10,6 +10,7 @@ import (
 	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
 	"github.com/thogtq/ecommerce-server/services"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var productDAO dao.ProductDAO
@@ -62,4 +63,20 @@ func GetProducts(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"products": products}))
+}
+func GetProduct(c *gin.Context) {
+
+	productID := c.Request.URL.Query().Get("productID")
+	objectID, err := primitive.ObjectIDFromHex(productID)
+	if err != nil {
+		//Fix me
+		c.Error(nil)
+		return
+	}
+	products, err := productDAO.GetProductByID(c, objectID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"product": products}))
 }
