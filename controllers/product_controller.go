@@ -69,8 +69,7 @@ func GetProduct(c *gin.Context) {
 	productID := c.Request.URL.Query().Get("productID")
 	objectID, err := primitive.ObjectIDFromHex(productID)
 	if err != nil {
-		//Fix me
-		c.Error(nil)
+		c.Error(errors.ErrProductNotFound)
 		return
 	}
 	products, err := productDAO.GetProductByID(c, objectID)
