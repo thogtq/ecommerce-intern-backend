@@ -18,14 +18,22 @@ type Product struct {
 	Images           []string           `bson:"images" json:"images"`
 	Brand            string             `bson:"brand" json:"brand"`
 	Price            float32            `bson:"price" json:"price"`
-	Sizes            []string           `bson:"sizes" json:"sizes"`
+	Sizes            []string           `bson:"sizes" json:"sizes" json:"sizes"`
 	Colors           []string           `bson:"colors" json:"colors"`
 	Quantity         int                `bson:"quantity" json:"quantity"`
 	Sold             int                `bson:"sold" json:"sold"`
 	Description      string             `bson:"description" json:"description"`
 }
 type ProductFilters struct {
-	Sort     string
-	Search   string
-	Category string
+	SortBy    string `form:"sortBy"`
+	SortOrder int    `form:"sortOrder"`
+	Search    string `form:"search"`
+	Category  string `form:"category"`
+	Size      string `form:"size"`
+	Color     string `form:"color"`
+	Brand     string `form:"brand"`
+	MinPrice  int    `form:"minPrice"`
+	MaxPrice  int    `form:"maxPrice"`
+	Available int    `form:"available"`
+	Page      int    `form:"page"`
 }

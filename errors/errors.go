@@ -36,55 +36,6 @@ func ErrorResponse(err error) H {
 	}
 
 }
-
-var (
-	ErrEmailExisted = &AppError{
-		HttpCode: 400,
-		Code:     "EMAIL_EXISTED",
-		Message:  "Email address have been existed",
-	}
-	ErrInvalidPassword = &AppError{
-		HttpCode: 400,
-		Code:     "INVALID_PASSWORD",
-		Message:  "Invalid password",
-	}
-	ErrEmailNotFound = &AppError{
-		HttpCode: 400,
-		Code:     "EMAIL_NOT_FOUND",
-		Message:  "Email address not found",
-	}
-	ErrUnauthorized = &AppError{
-		HttpCode: 400,
-		Code:     "UNAUTHORIZED",
-		Message:  "Unauthorized access",
-	}
-	ErrInvalidToken = &AppError{
-		HttpCode: 400,
-		Code:     "INVALID_TOKEN",
-		Message:  "Your token is invalid",
-	}
-	ErrExpiredToken = &AppError{
-		HttpCode: 400,
-		Code:     "EXPIRED_TOKEN",
-		Message:  "Your token is expired",
-	}
-	ErrInvalidExtension = &AppError{
-		HttpCode: 400,
-		Code:     "INVALID_FILE_EXTENSION",
-		Message:  "Invalid file extension",
-	}
-	ErrNoFile = &AppError{
-		HttpCode: 400,
-		Code:     "NO_FILE",
-		Message:  "No file received",
-	}
-	ErrProductNotFound = &AppError{
-		HttpCode: 400,
-		Code:     "PRODUCT_NOT_FOUND",
-		Message:  "Product not found",
-	}
-)
-
 func ErrInternal(msg string) *AppError {
 	return &AppError{
 		HttpCode: 500,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/constants"
@@ -27,15 +28,28 @@ func (pd *ProductDAO) Init() {
 	pd.productCollection = database.DBClient.Database("ecommerce").Collection("products")
 }
 
-func (pd *ProductDAO) GetProducts(c context.Context, filters *models.ProductFilters) (*[]models.Product, error) {
+func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilters) (*[]models.Product, error) {
 	pd.Init()
 	productArray := []models.Product{}
-	findFilter := bson.M{}
+	findFilter := bson.D{}
 	findOptions := options.Find()
-	if filters.Sort != "" {
-		findOptions.SetSort(bson.D{{filters.Sort, -1}})
+	//Sort options
+	if filter.SortBy != "" {
+		findOptions.SetSort(bson.D{{Key: filter.SortBy, Value: filter.SortOrder}})
 	}
-	//if filters.
+	//Filter attribute
+	if filter.Category != "" {
+		key := "categories"
+		if !strings.Contains(filter.Category, "/") {
+			key = "parentCategories"
+		}
+		findFilter = append(findFilter, bson.E{Key: key, Value: filter.Category})
+	}
+	//Search by name
+	if filter.Search != "" {
+		findFilter = append(findFilter, bson.E{Key: "name", Value: primitive.Regex{Pattern: filter.Search, Options: ""}})
+	}
+	//Continue to implements color size brand price and available
 	cur, err := pd.productCollection.Find(c, findFilter, findOptions)
 	if err != nil {
 		return nil, errors.ErrInternal(err.Error())

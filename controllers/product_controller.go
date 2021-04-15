@@ -23,7 +23,7 @@ func CreateProduct(c *gin.Context) {
 	productData.ParentCategories = services.GetParentCategories(productData.Categories)
 	productData.CreatedAt = time.Now()
 	if len(productData.Images) == 0 {
-		productData.Images = []string{"http://"+c.Request.Host + constants.PRODUCT_DEFAULT_IMAGE_PATH}
+		productData.Images = []string{"http://" + c.Request.Host + constants.PRODUCT_DEFAULT_IMAGE_PATH}
 	} else {
 		for index, image := range productData.Images {
 			imageName := image[strings.LastIndex(image, "/")+1:]
@@ -68,12 +68,15 @@ func UploadProductImage(c *gin.Context) {
 
 }
 func GetProducts(c *gin.Context) {
-	filters := &models.ProductFilters{
-		Sort:     c.Request.URL.Query().Get("sort"),
-		Search:   c.Request.URL.Query().Get("search"),
-		Category: c.Request.URL.Query().Get("category"),
+	filter := &models.ProductFilters{}
+	err := c.Bind(filter)
+	if err != nil {
+		c.Error(errors.ErrInternal(err.Error()))
 	}
-	products, err := productDAO.GetProducts(c, filters)
+	if filter.SortOrder == 0 {
+		filter.SortOrder = -1
+	}
+	products, err := productDAO.GetProducts(c, filter)
 	if err != nil {
 		c.Error(err)
 		return
