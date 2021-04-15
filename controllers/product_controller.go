@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"os"
 	"path"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/thogtq/ecommerce-server/constants"
 	"github.com/thogtq/ecommerce-server/dao"
 	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
@@ -20,6 +22,20 @@ func CreateProduct(c *gin.Context) {
 	c.BindJSON(productData)
 	productData.ParentCategories = services.GetParentCategories(productData.Categories)
 	productData.CreatedAt = time.Now()
+	if len(productData.Images) == 0 {
+		productData.Images = []string{"http://"+c.Request.Host + constants.PRODUCT_DEFAULT_IMAGE_PATH}
+	} else {
+		for index, image := range productData.Images {
+			imageName := image[strings.LastIndex(image, "/")+1:]
+			err := os.Rename(constants.PRODUCT_IMAGE_TEMP_DIR+imageName, constants.PRODUCT_IMAGE_DIR+imageName)
+			if err != nil {
+				c.Error(errors.ErrInternal(err.Error()))
+				return
+			}
+			productData.Images[index] = strings.Replace(image, constants.PRODUCT_IMAGE_TEMP_URL, constants.PRODUCT_IMAGE_URL, 1)
+		}
+
+	}
 	res, err := productDAO.InsertProduct(c.Request.Context(), productData)
 	if err != nil {
 		c.Error(err)
@@ -47,9 +63,9 @@ func UploadProductImage(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	c.JSON(200, SuccessResponse(gin.H{"fileName": fileName}))
-	//Fix me
-	//Response URL
+	fileUrl := "http://" + c.Request.Host + constants.PRODUCT_IMAGE_TEMP_URL + fileName
+	c.JSON(200, SuccessResponse(gin.H{"fileUrl": fileUrl}))
+
 }
 func GetProducts(c *gin.Context) {
 	filters := &models.ProductFilters{

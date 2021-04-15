@@ -3,10 +3,10 @@ package dao
 import (
 	"context"
 	"mime/multipart"
-	"os"
 	"path"
 
 	"github.com/gin-gonic/gin"
+	"github.com/thogtq/ecommerce-server/constants"
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/helpers"
@@ -25,8 +25,6 @@ type ProductDAO struct {
 
 func (pd *ProductDAO) Init() {
 	pd.productCollection = database.DBClient.Database("ecommerce").Collection("products")
-	pd.productImageTempDir = "./files/images/temp/"
-	pd.productImageDir = "./files/images/products/"
 }
 
 func (pd *ProductDAO) GetProducts(c context.Context, filters *models.ProductFilters) (*[]models.Product, error) {
@@ -76,19 +74,13 @@ func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Pro
 	if err != nil {
 		return "", errors.ErrInternal(err.Error())
 	}
-	for _, image := range productObject.Images {
-		err := os.Rename(pd.productImageTempDir+image, pd.productImageDir+image)
-		if err != nil {
-			return "", errors.ErrInternal(err.Error())
-		}
-	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (string, error) {
 	pd.Init()
 	file.Filename = helpers.GenerateUUID() + path.Ext(file.Filename)
-	err := c.SaveUploadedFile(file, pd.productImageTempDir+file.Filename)
+	err := c.SaveUploadedFile(file, constants.PRODUCT_IMAGE_TEMP_DIR+file.Filename)
 	if err != nil {
 		return "", errors.ErrInternal(err.Error())
 	}
