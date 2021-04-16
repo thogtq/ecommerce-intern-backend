@@ -49,7 +49,33 @@ func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilte
 	if filter.Search != "" {
 		findFilter = append(findFilter, bson.E{Key: "name", Value: primitive.Regex{Pattern: filter.Search, Options: ""}})
 	}
-	//Continue to implements color size brand price and available
+	//Filter by attributes
+	if filter.Color != "" {
+		findFilter = append(findFilter, bson.E{Key: "colors", Value: filter.Color})
+	}
+	if filter.Size != "" {
+		findFilter = append(findFilter, bson.E{Key: "sizes", Value: filter.Size})
+	}
+	if filter.Brand != "" {
+		findFilter = append(findFilter, bson.E{Key: "brand", Value: filter.Brand})
+	}
+	if filter.MaxPrice != 0 {
+		findFilter = append(findFilter, bson.E{Key: "price", Value: bson.D{
+			{Key: "$gte", Value: filter.MinPrice},
+			{Key: "$lte", Value: filter.MaxPrice},
+		}})
+	}
+	if filter.Available != "" {
+		//Fix me
+		//Not working
+		operator := "$ne"
+		if filter.Available == "out" {
+			operator = "$eq"
+		}
+		findFilter = append(findFilter, bson.E{Key: "$expr", Value: bson.E{
+			Key: operator, Value: []string{"$sold", "$quantity"},
+		}})
+	}
 	cur, err := pd.productCollection.Find(c, findFilter, findOptions)
 	if err != nil {
 		return nil, errors.ErrInternal(err.Error())

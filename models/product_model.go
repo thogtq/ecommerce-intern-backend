@@ -34,6 +34,6 @@ type ProductFilters struct {
 	Brand     string `form:"brand"`
 	MinPrice  int    `form:"minPrice"`
 	MaxPrice  int    `form:"maxPrice"`
-	Available int    `form:"available"`
+	Available string    `form:"available"`
 	Page      int    `form:"page"`
 }
