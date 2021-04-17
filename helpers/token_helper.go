@@ -54,14 +54,11 @@ func ValidateToken(signedToken string) (*SignedDetails, error) {
 		},
 	)
 	if err != nil {
-		return nil, errors.ErrInternal(err.Error())
+		return nil, errors.ErrExpiredToken
 	}
 	claims, ok := token.Claims.(*SignedDetails)
 	if !ok {
 		return nil, errors.ErrInvalidToken
-	}
-	if claims.ExpiresAt < time.Now().Local().Unix() {
-		return nil, errors.ErrExpiredToken
 	}
 	return claims, nil
 }
