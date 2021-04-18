@@ -25,6 +25,7 @@ type Product struct {
 	Description      string             `bson:"description" json:"description"`
 }
 type ProductFilters struct {
+	Limit     int    `form:"limit"`
 	SortBy    string `form:"sortBy"`
 	SortOrder int    `form:"sortOrder"`
 	Search    string `form:"search"`
@@ -34,6 +35,6 @@ type ProductFilters struct {
 	Brand     string `form:"brand"`
 	MinPrice  int    `form:"minPrice"`
 	MaxPrice  int    `form:"maxPrice"`
-	Available string    `form:"available"`
+	Available string `form:"available"`
 	Page      int    `form:"page"`
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"math"
 	"os"
 	"path"
 	"strings"
@@ -74,12 +75,15 @@ func GetProducts(c *gin.Context) {
 	if filter.SortOrder == 0 {
 		filter.SortOrder = -1
 	}
-	products, err := productDAO.GetProducts(c.Request.Context(), filter)
+	if filter.Page == 0 {
+		filter.Page = 1
+	}
+	products, counts, err := productDAO.GetProducts(c.Request.Context(), filter)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	c.JSON(200, SuccessResponse(gin.H{"products": products}))
+	c.JSON(200, SuccessResponse(gin.H{"products": products, "counts": counts, "pages": math.Ceil(float64(counts) / float64(filter.Limit))}))
 }
 func GetProduct(c *gin.Context) {
 

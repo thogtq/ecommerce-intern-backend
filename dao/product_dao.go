@@ -28,11 +28,15 @@ func (pd *ProductDAO) Init() {
 	pd.productCollection = database.DBClient.Database("ecommerce").Collection("products")
 }
 
-func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilters) (*[]models.Product, error) {
+func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilters) (*[]models.Product, int64, error) {
 	pd.Init()
 	productArray := []models.Product{}
+	counts := int64(0)
+	rowSkip := (filter.Page - 1) * filter.Limit
 	findFilter := bson.D{}
 	findOptions := options.Find()
+	findOptions.SetLimit(int64(filter.Limit))
+	findOptions.SetSkip(int64(rowSkip))
 	//Sort options
 	if filter.SortBy != "" {
 		findOptions.SetSort(bson.D{{Key: filter.SortBy, Value: filter.SortOrder}})
@@ -47,7 +51,7 @@ func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilte
 	}
 	//Search by name
 	if filter.Search != "" {
-		findFilter = append(findFilter, bson.E{Key: "name", Value: primitive.Regex{Pattern: filter.Search, Options: ""}})
+		findFilter = append(findFilter, bson.E{Key: "name", Value: primitive.Regex{Pattern: filter.Search, Options: "i"}})
 	}
 	//Filter by attributes
 	if filter.Color != "" {
@@ -65,30 +69,31 @@ func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilte
 			{Key: "$lte", Value: filter.MaxPrice},
 		}})
 	}
-	if filter.Available != "" {
-		//Fix me
-		//Not working
-		operator := "$ne"
-		if filter.Available == "out" {
-			operator = "$eq"
-		}
-		findFilter = append(findFilter, bson.E{Key: "$expr", Value: bson.E{
-			Key: operator, Value: []string{"$sold", "$quantity"},
-		}})
-	}
+	// if filter.Available != "" {
+	// 	//Fix me
+	// 	//Not working
+	// 	operator := "$ne"
+	// 	if filter.Available == "out" {
+	// 		operator = "$eq"
+	// 	}
+	// 	findFilter = append(findFilter, bson.E{Key: "$expr", Value: bson.E{
+	// 		Key: operator, Value: []string{"$sold", "$quantity"},
+	// 	}})
+	// }
 	cur, err := pd.productCollection.Find(c, findFilter, findOptions)
 	if err != nil {
-		return nil, errors.ErrInternal(err.Error())
+		return nil, 0, errors.ErrInternal(err.Error())
 	}
+	counts, err = pd.productCollection.CountDocuments(c, findFilter)
 	for cur.Next(c) {
 		product := &models.Product{}
 		err := cur.Decode(product)
 		if err != nil {
-			return nil, errors.ErrInternal(err.Error())
+			return nil, 0, errors.ErrInternal(err.Error())
 		}
 		productArray = append(productArray, *product)
 	}
-	return &productArray, nil
+	return &productArray, counts, nil
 }
 
 func (pd *ProductDAO) GetProductByID(c context.Context, productID primitive.ObjectID) (*models.Product, error) {
