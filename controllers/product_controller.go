@@ -42,8 +42,6 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"productID": res}))
-	//Fix me
-	//Handle empty images
 }
 func UploadProductImage(c *gin.Context) {
 	file, err := c.FormFile("productImage")
@@ -76,7 +74,7 @@ func GetProducts(c *gin.Context) {
 	if filter.SortOrder == 0 {
 		filter.SortOrder = -1
 	}
-	products, err := productDAO.GetProducts(c, filter)
+	products, err := productDAO.GetProducts(c.Request.Context(), filter)
 	if err != nil {
 		c.Error(err)
 		return
@@ -91,7 +89,7 @@ func GetProduct(c *gin.Context) {
 		c.Error(errors.ErrProductNotFound)
 		return
 	}
-	products, err := productDAO.GetProductByID(c, objectID)
+	products, err := productDAO.GetProductByID(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -105,22 +103,51 @@ func DeleteProduct(c *gin.Context) {
 		c.Error(errors.ErrProductNotFound)
 		return
 	}
-	product, err := productDAO.GetProductByID(c, objectID)
+	product, err := productDAO.GetProductByID(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	err = productDAO.DeleteProduct(c, objectID)
+	err = productDAO.DeleteProduct(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	for _, image := range product.Images {
-		imageName := services.GetProductImageNameFromURL(image)
-		err = os.Remove(constants.PRODUCT_IMAGE_DIR + imageName)
+	if !strings.Contains(product.Images[0], constants.PRODUCT_DEFAULT_IMAGE_PATH) {
+		for _, image := range product.Images {
+			imageName := services.GetProductImageNameFromURL(image)
+			err = os.Remove(constants.PRODUCT_IMAGE_DIR + imageName)
+		}
 	}
 	c.JSON(200, SuccessResponse(gin.H{"result": "deleted"}))
 }
 func UpdateProduct(c *gin.Context) {
+	productData := &models.Product{}
+	c.BindJSON(productData)
+	productData.ParentCategories = services.GetParentCategories(productData.Categories)
+	//Set default image if no product images found
+	if len(productData.Images) == 0 {
+		productData.Images = []string{"http://" + c.Request.Host + constants.PRODUCT_DEFAULT_IMAGE_PATH}
+	} else {
+		for index, image := range productData.Images {
+			//Keep existing image
+			if strings.Contains(image, constants.PRODUCT_IMAGE_URL) {
+				continue
+			}
+			imageName := services.GetProductImageNameFromURL(image)
+			err := os.Rename(constants.PRODUCT_IMAGE_TEMP_DIR+imageName, constants.PRODUCT_IMAGE_DIR+imageName)
+			if err != nil {
+				c.Error(errors.ErrInternal(err.Error()))
+				return
+			}
+			productData.Images[index] = strings.Replace(image, constants.PRODUCT_IMAGE_TEMP_URL, constants.PRODUCT_IMAGE_URL, 1)
+		}
 
+	}
+	err := productDAO.UpdateProduct(c.Request.Context(), productData)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"result": "updated"}))
 }

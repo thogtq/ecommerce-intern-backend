@@ -126,10 +126,26 @@ func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (s
 	}
 	return file.Filename, nil
 }
-func (pd *ProductDAO) DeleteProduct(c *gin.Context, productID primitive.ObjectID) error {
+func (pd *ProductDAO) DeleteProduct(c context.Context, productID primitive.ObjectID) error {
 	pd.Init()
 	_, err := pd.productCollection.DeleteOne(c, bson.D{{Key: "_id", Value: productID}})
 	if err != nil {
+		return errors.ErrProductNotFound
+	}
+	return nil
+}
+func (pd *ProductDAO) UpdateProduct(c context.Context, product *models.Product) error {
+	pd.Init()
+	objectID, err := primitive.ObjectIDFromHex(product.ProductID.Hex())
+	if err != nil {
+		return errors.ErrProductNotFound
+	}
+	filter := bson.D{{Key: "_id", Value: objectID}}
+	result, err := pd.productCollection.ReplaceOne(c, filter, product)
+	if err != nil {
+		return errors.ErrInternal(err.Error())
+	}
+	if result.MatchedCount == 0 {
 		return errors.ErrProductNotFound
 	}
 	return nil
