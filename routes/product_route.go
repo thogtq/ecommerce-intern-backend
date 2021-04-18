@@ -13,6 +13,9 @@ func ProductPublicRoute(r *gin.RouterGroup) {
 	r.Static("/product/temp/", "./files/images/temp")
 }
 func ProductAdminRoute(r *gin.RouterGroup) {
+	r.DELETE("/product/", controllers.DeleteProduct)
+
 	r.POST("/product/image", controllers.UploadProductImage)
 	r.POST("/product", controllers.CreateProduct)
+	r.PUT("/product", controllers.UpdateProduct)
 }

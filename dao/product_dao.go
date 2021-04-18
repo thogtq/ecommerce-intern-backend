@@ -126,3 +126,11 @@ func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (s
 	}
 	return file.Filename, nil
 }
+func (pd *ProductDAO) DeleteProduct(c *gin.Context, productID primitive.ObjectID) error {
+	pd.Init()
+	_, err := pd.productCollection.DeleteOne(c, bson.D{{Key: "_id", Value: productID}})
+	if err != nil {
+		return errors.ErrProductNotFound
+	}
+	return nil
+}

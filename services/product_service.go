@@ -13,3 +13,6 @@ func GetParentCategories(categories []string) []string {
 	}
 	return parentCategories
 }
+func GetProductImageNameFromURL(imageURL string) string {
+	return imageURL[strings.LastIndex(imageURL, "/")+1:]
+}

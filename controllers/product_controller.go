@@ -26,7 +26,7 @@ func CreateProduct(c *gin.Context) {
 		productData.Images = []string{"http://" + c.Request.Host + constants.PRODUCT_DEFAULT_IMAGE_PATH}
 	} else {
 		for index, image := range productData.Images {
-			imageName := image[strings.LastIndex(image, "/")+1:]
+			imageName := services.GetProductImageNameFromURL(image)
 			err := os.Rename(constants.PRODUCT_IMAGE_TEMP_DIR+imageName, constants.PRODUCT_IMAGE_DIR+imageName)
 			if err != nil {
 				c.Error(errors.ErrInternal(err.Error()))
@@ -97,4 +97,30 @@ func GetProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"product": products}))
+}
+func DeleteProduct(c *gin.Context) {
+	productID := c.Request.URL.Query().Get("productID")
+	objectID, err := primitive.ObjectIDFromHex(productID)
+	if err != nil {
+		c.Error(errors.ErrProductNotFound)
+		return
+	}
+	product, err := productDAO.GetProductByID(c, objectID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	err = productDAO.DeleteProduct(c, objectID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	for _, image := range product.Images {
+		imageName := services.GetProductImageNameFromURL(image)
+		err = os.Remove(constants.PRODUCT_IMAGE_DIR + imageName)
+	}
+	c.JSON(200, SuccessResponse(gin.H{"result": "deleted"}))
+}
+func UpdateProduct(c *gin.Context) {
+
 }
