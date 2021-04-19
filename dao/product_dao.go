@@ -10,8 +10,8 @@ import (
 	"github.com/thogtq/ecommerce-server/constants"
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/errors"
-	"github.com/thogtq/ecommerce-server/helpers"
 	"github.com/thogtq/ecommerce-server/models"
+	"github.com/thogtq/ecommerce-server/pkg/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,9 +19,7 @@ import (
 )
 
 type ProductDAO struct {
-	productCollection   *mongo.Collection
-	productImageTempDir string
-	productImageDir     string
+	productCollection *mongo.Collection
 }
 
 func (pd *ProductDAO) Init() {
@@ -84,7 +82,7 @@ func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilte
 	if err != nil {
 		return nil, 0, errors.ErrInternal(err.Error())
 	}
-	counts, err = pd.productCollection.CountDocuments(c, findFilter)
+	counts, _ = pd.productCollection.CountDocuments(c, findFilter)
 	for cur.Next(c) {
 		product := &models.Product{}
 		err := cur.Decode(product)
@@ -124,7 +122,7 @@ func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Pro
 
 func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (string, error) {
 	pd.Init()
-	file.Filename = helpers.GenerateUUID() + path.Ext(file.Filename)
+	file.Filename = uuid.NewShortUUID() + path.Ext(file.Filename)
 	err := c.SaveUploadedFile(file, constants.PRODUCT_IMAGE_TEMP_DIR+file.Filename)
 	if err != nil {
 		return "", errors.ErrInternal(err.Error())

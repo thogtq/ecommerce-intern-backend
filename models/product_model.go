@@ -4,10 +4,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var productCollection *mongo.Collection
 
 type Product struct {
 	ProductID        primitive.ObjectID `bson:"_id,omitempty" json:"productID"`
@@ -17,8 +14,8 @@ type Product struct {
 	ParentCategories []string           `bson:"parentCategories" json:"parentCategories"`
 	Images           []string           `bson:"images" json:"images"`
 	Brand            string             `bson:"brand" json:"brand"`
-	Price            float32            `bson:"price" json:"price"`
-	Sizes            []string           `bson:"sizes" json:"sizes" json:"sizes"`
+	Price            int                `bson:"price" json:"price"`
+	Sizes            []string           `bson:"sizes" json:"sizes"`
 	Colors           []string           `bson:"colors" json:"colors"`
 	Quantity         int                `bson:"quantity" json:"quantity"`
 	Sold             int                `bson:"sold" json:"sold"`

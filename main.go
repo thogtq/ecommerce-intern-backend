@@ -16,7 +16,7 @@ func main() {
 	database.Connect()
 	defer database.Disconnect()
 	r := gin.Default()
-	
+
 	r.GET("/test", func(c *gin.Context) {
 		b := bson.D{bson.E{"_id", "12313"}}
 		e := bson.E{"name", "hahaha"}
@@ -40,12 +40,14 @@ func main() {
 	authorized.Use(middlewares.AuthRequired())
 	{
 		routes.UserPrivateRoute(authorized)
+		routes.OrderPrivateRoute(authorized)
 	}
 	admin := r.Group("/api")
 	admin.Use(middlewares.AdminAuthRequired())
 	{
 		routes.UserAdminRoute(admin)
 		routes.ProductAdminRoute(admin)
+		routes.OrderAdminRoute(admin)
 	}
 	r.Run(":8080")
 }
