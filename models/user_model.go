@@ -11,10 +11,10 @@ import (
 
 type User struct {
 	UserID   primitive.ObjectID `bson:"_id,omitempty" json:"userID,omitempty"` //Fix me
-	Fullname string             `bson:"fullname" json:"fullname"`
-	Email    string             `bson:"email" json:"email"`
-	Password string             `bson:"password" json:"password,omitempty"`
-	Role     string             `bson:"role" json:"role,omitempty"`
+	Fullname string             `bson:"fullname,omitempty" json:"fullname"`
+	Email    string             `bson:"email,omitempty" json:"email"`
+	Password string             `bson:"password,omitempty" json:"password,omitempty"`
+	Role     string             `bson:"role,omitempty" json:"role,omitempty"`
 }
 type UserToken struct {
 	AccessToken  string

@@ -6,7 +6,7 @@ func GetParentCategories(categories []string) []string {
 	parentCategories := []string{}
 	for _, category := range categories {
 		parent := strings.Split(category, "/")[0]
-		if !contains(parentCategories, parent) {
+		if !Contains(parentCategories, parent) {
 			parentCategories = append(parentCategories, parent)
 		}
 

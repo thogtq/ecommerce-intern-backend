@@ -41,10 +41,19 @@ func Login(c *gin.Context) {
 	}))
 }
 func UpdateUser(c *gin.Context) {
-	userID, _ := GetContextUserID(c)
-	userDetails, err := userDAO.GetUserByUserID(c, userID)
-	_, _ = userDetails, err
-	c.JSON(200, gin.H{"status": userDetails, "id": userID})
+	userData := &models.User{}
+	userID, err := GetContextUserID(c)
+	if err != nil {
+		c.Error(errors.ErrUnauthorized)
+		return
+	}
+	err = c.BindJSON(userData)
+	if err != nil {
+		c.Error(errors.ErrInternal(err.Error()))
+		return
+	}
+	userDAO.New().UpdateUser(c, userData, userID)
+	c.JSON(200, SuccessResponse(gin.H{"result": "updated"}))
 }
 
 func AdminLogin(c *gin.Context) {
@@ -69,4 +78,42 @@ func AdminLogin(c *gin.Context) {
 		"user":  userObj,
 		"token": userToken.AccessToken,
 	}))
+}
+func GetUser(c *gin.Context) {
+	userID, err := GetContextUserID(c)
+	if err != nil {
+		c.Error(errors.ErrUnauthorized)
+		return
+	}
+	user, err := userDAO.New().GetUserByUserID(c.Request.Context(), userID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	user.Password = ""
+	c.JSON(200, SuccessResponse(gin.H{"user": user}))
+}
+func UpdateUserPassword(c *gin.Context) {
+	var (
+		params struct {
+			OldPassword string `json:"oldPassword" binding:"required"`
+			NewPassword string `json:"newPassword" binding:"required"`
+		}
+	)
+	userID, err := GetContextUserID(c)
+	if err != nil {
+		c.Error(errors.ErrUnauthorized)
+		return
+	}
+	err = c.BindJSON(params)
+	if err != nil {
+		//test
+		c.Error(err)
+	}
+	err = userDAO.New().UpdateUserPassword(c, params.OldPassword, params.NewPassword, userID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"result": "updated"}))
 }

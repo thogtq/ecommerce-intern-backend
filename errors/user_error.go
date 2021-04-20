@@ -31,4 +31,19 @@ var (
 		Code:     "EXPIRED_TOKEN",
 		Message:  "Your token is expired",
 	}
+	ErrNoUserID = &AppError{
+		HttpCode: 400,
+		Code:     "MISSING_USERID",
+		Message:  "UserID is missing",
+	}
+	ErrInvalidUserID = &AppError{
+		HttpCode: 400,
+		Code:     "INVALID_USERID",
+		Message:  "UserID is invalid",
+	}
+	ErrUserNotFound = &AppError{
+		HttpCode: 400,
+		Code:     "USER_NOT_FOUND",
+		Message:  "User not found",
+	}
 )

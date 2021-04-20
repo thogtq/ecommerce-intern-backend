@@ -6,7 +6,6 @@ import (
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/middlewares"
 	"github.com/thogtq/ecommerce-server/routes"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func init() {
@@ -16,15 +15,6 @@ func main() {
 	database.Connect()
 	defer database.Disconnect()
 	r := gin.Default()
-
-	r.GET("/test", func(c *gin.Context) {
-		b := bson.D{bson.E{"_id", "12313"}}
-		e := bson.E{"name", "hahaha"}
-		b = append(b, e)
-
-		c.JSON(200, b)
-	})
-	//
 	//Middlewares
 	r.Use(middlewares.CORSMiddleware())
 	r.Use(middlewares.ErrorHandler())

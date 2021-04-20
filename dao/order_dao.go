@@ -16,25 +16,25 @@ type OrderDAO struct {
 	orderCollection *mongo.Collection
 }
 
-func (pd *OrderDAO) New() *OrderDAO {
-	pd.orderCollection = database.DBClient.Database("ecommerce").Collection("orders")
-	return pd
+func (od *OrderDAO) New() *OrderDAO {
+	od.orderCollection = database.DBClient.Database("ecommerce").Collection("orders")
+	return od
 }
 
 //Fix me
-func (pd *OrderDAO) Init() {
-	pd.orderCollection = database.DBClient.Database("ecommerce").Collection("orders")
+func (od *OrderDAO) Init() {
+	od.orderCollection = database.DBClient.Database("ecommerce").Collection("orders")
 }
-func (pd *OrderDAO) InsertOrder(c context.Context, order *models.Order) (string, error) {
-	pd.Init()
-	result, err := pd.orderCollection.InsertOne(c, order)
+func (od *OrderDAO) InsertOrder(c context.Context, order *models.Order) (string, error) {
+	od.Init()
+	result, err := od.orderCollection.InsertOne(c, order)
 	if err != nil {
 		return "", nil
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
-func (pd *OrderDAO) GetOrders(c context.Context, filter *models.OrderFilter) (*[]models.Order, int64, error) {
-	pd.Init()
+func (od *OrderDAO) GetOrders(c context.Context, filter *models.OrderFilter) (*[]models.Order, int64, error) {
+	od.Init()
 	var (
 		skipRows    = (filter.Page - 1) * filter.Limit
 		findFilter  = bson.D{}
@@ -51,11 +51,11 @@ func (pd *OrderDAO) GetOrders(c context.Context, filter *models.OrderFilter) (*[
 			Value: primitive.Regex{Pattern: filter.Search, Options: ""},
 		})
 	}
-	cur, err := pd.orderCollection.Find(c, findFilter, findOptions)
+	cur, err := od.orderCollection.Find(c, findFilter, findOptions)
 	if err != nil {
 		return nil, 0, errors.ErrInternal(err.Error())
 	}
-	counts, _ = pd.orderCollection.CountDocuments(c, findFilter)
+	counts, _ = od.orderCollection.CountDocuments(c, findFilter)
 	for cur.Next(c) {
 		order := &models.Order{}
 		err := cur.Decode(order)
@@ -65,4 +65,15 @@ func (pd *OrderDAO) GetOrders(c context.Context, filter *models.OrderFilter) (*[
 		orders = append(orders, *order)
 	}
 	return &orders, counts, nil
+}
+func (od *OrderDAO) UpdateStatus(c context.Context, orderID, status string) error {
+	update := bson.D{{"$set", bson.D{{"status", status}}}}
+	result, err := od.orderCollection.UpdateOne(c, bson.M{"orderID": orderID}, update)
+	if err != nil {
+		return errors.ErrInternal(err.Error())
+	}
+	if result.MatchedCount == 0 {
+		return errors.ErrOrderIDNotFound
+	}
+	return nil
 }

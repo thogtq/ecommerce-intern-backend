@@ -8,6 +8,7 @@ import (
 
 type ProductOrder struct {
 	ProductID string `bson:"productID" json:"productID"`
+	Name      string `bson:"name,omitempty" json:"name"`
 	Color     string `bson:"color,omitempty" json:"color"`
 	Size      string `bson:"size,omitempty" json:"size"`
 	Quantity  int    `bson:"quantity,omitempty" json:"quantity"`

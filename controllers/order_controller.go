@@ -6,8 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/dao"
+	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/models"
 	"github.com/thogtq/ecommerce-server/pkg/uuid"
+	"github.com/thogtq/ecommerce-server/services"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -27,6 +29,10 @@ func CreateOrder(c *gin.Context) {
 	order.Status = "Pending"
 	if err != nil {
 		c.Error(err)
+		return
+	}
+	if len(order.ProductsOrder) == 0 {
+		c.Error(errors.ErrEmptyCart)
 		return
 	}
 	//Calculate product amount(price*quantity) and subtotal(sum of amount)
@@ -69,9 +75,38 @@ func GetOrders(c *gin.Context) {
 	pages := math.Ceil(float64(counts) / float64(filter.Limit))
 	c.JSON(200, SuccessResponse(
 		gin.H{
-			"orders":  orders,
+			"orders": orders,
 			"counts": counts,
 			"pages":  pages,
 		},
 	))
+}
+func UpdateOrderStatus(c *gin.Context) {
+	var (
+		orderID    = c.Request.URL.Query().Get("orderID")
+		bodyParams struct {
+			Status string `json:"status"`
+		}
+		//Get from DB
+		statusDB = []string{"Pending", "Completed", "Canceled"}
+	)
+	if orderID == "" {
+		c.Error(errors.ErrNoOrderID)
+		return
+	}
+	err := c.BindJSON(&bodyParams)
+	if err != nil {
+		c.Error(errors.ErrInternal(err.Error()))
+		return
+	}
+	if !services.Contains(statusDB, bodyParams.Status) {
+		c.Error(errors.ErrInvalidOrderStatus)
+		return
+	}
+	err = orderDAO.New().UpdateStatus(c.Request.Context(), orderID, bodyParams.Status)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"result": "updated"}))
 }
