@@ -9,7 +9,7 @@ func UserPublicRoute(r *gin.RouterGroup) {
 	r.POST("/user/login", controllers.Login)
 	//Gop voi user/login
 	r.POST("/admin/login", controllers.AdminLogin)
-	r.POST("/user", controllers.Regiser)
+	r.POST("/users/", controllers.Regiser)
 	r.Static("/user/image/", "./files/images/users")
 }
 func UserPrivateRoute(r *gin.RouterGroup) {

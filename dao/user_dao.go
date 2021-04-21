@@ -10,7 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserDAO struct {
@@ -21,17 +20,12 @@ func (ud *UserDAO) New() *UserDAO {
 	ud.userCollection = database.DBClient.Database("ecommerce").Collection("users")
 	return ud
 }
-func (ud *UserDAO) Init() {
-	ud.userCollection = database.DBClient.Database("ecommerce").Collection("users")
-}
-//Fix me
+
 func (ud *UserDAO) CreateUser(ctx context.Context, userData *models.User) (insertID string, err error) {
-	ud.Init()
-	user := models.User{}
-	if checkEmail := user.CheckIfEmailExist(ctx, ud.userCollection, userData.Email); checkEmail {
+	if checkEmail := services.CheckIfEmailExist(ctx, ud.userCollection, userData.Email); checkEmail {
 		return "", errors.ErrEmailExisted
 	}
-	userData.Password = user.HashPassword(userData.Password)
+	userData.Password = services.HashPassword(userData.Password)
 	userData.Role = "user"
 	res, err := ud.userCollection.InsertOne(ctx, userData)
 	if err != nil {
@@ -40,7 +34,6 @@ func (ud *UserDAO) CreateUser(ctx context.Context, userData *models.User) (inser
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user *models.User, err error) {
-	ud.Init()
 	user = &models.User{}
 	result := ud.userCollection.FindOne(ctx, bson.M{"email": loginData.Email})
 	err = result.Decode(user)
@@ -50,7 +43,7 @@ func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user
 	if err != nil {
 		return nil, errors.ErrInternal(err.Error())
 	}
-	if checkPassword := user.VerifyPassword(user.Password, loginData.Password); !checkPassword {
+	if checkPassword := services.VerifyPassword(user.Password, loginData.Password); !checkPassword {
 		return nil, errors.ErrInvalidPassword
 	}
 	user.Password = ""
@@ -58,7 +51,6 @@ func (ud *UserDAO) Login(ctx context.Context, loginData *models.UserLogin) (user
 }
 
 func (ud *UserDAO) GetUserByUserID(ctx context.Context, userID string) (user *models.User, err error) {
-	ud.Init()
 	user = &models.User{}
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
@@ -95,8 +87,17 @@ func (ud *UserDAO) UpdateUser(c context.Context, userData *models.User, userID s
 	}
 	return nil
 }
-func (ud *UserDAO) UpdateUserPassword(c context.Context, new, userID string) error {
-	
-
+func (ud *UserDAO) UpdateUserPassword(c context.Context, newHashedPassword, userID string) error {
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return errors.ErrUserNotFound
+	}
+	result, err := ud.userCollection.UpdateOne(c, bson.M{"_id": objectID}, bson.D{{"$set", bson.D{{"password", newHashedPassword}}}})
+	if err != nil {
+		return errors.ErrInternal(err.Error())
+	}
+	if result.MatchedCount == 0 {
+		return errors.ErrUserNotFound
+	}
 	return nil
 }

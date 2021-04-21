@@ -21,20 +21,15 @@ func (od *OrderDAO) New() *OrderDAO {
 	return od
 }
 
-//Fix me
-func (od *OrderDAO) Init() {
-	od.orderCollection = database.DBClient.Database("ecommerce").Collection("orders")
-}
 func (od *OrderDAO) InsertOrder(c context.Context, order *models.Order) (string, error) {
-	od.Init()
 	result, err := od.orderCollection.InsertOne(c, order)
 	if err != nil {
 		return "", nil
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
+
 func (od *OrderDAO) GetOrders(c context.Context, filter *models.OrderFilter) (*[]models.Order, int64, error) {
-	od.Init()
 	var (
 		skipRows    = (filter.Page - 1) * filter.Limit
 		findFilter  = bson.D{}

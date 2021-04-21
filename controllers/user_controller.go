@@ -6,6 +6,7 @@ import (
 	"github.com/thogtq/ecommerce-server/errors"
 	"github.com/thogtq/ecommerce-server/helpers"
 	"github.com/thogtq/ecommerce-server/models"
+	"github.com/thogtq/ecommerce-server/services"
 )
 
 var userDAO dao.UserDAO
@@ -13,7 +14,7 @@ var userDAO dao.UserDAO
 func Regiser(c *gin.Context) {
 	newUser := &models.User{}
 	c.BindJSON(newUser)
-	res, err := userDAO.CreateUser(c.Request.Context(), newUser)
+	res, err := userDAO.New().CreateUser(c.Request.Context(), newUser)
 	if err != nil {
 		c.Error(err)
 		return
@@ -24,7 +25,7 @@ func Login(c *gin.Context) {
 	userLogin := &models.UserLogin{}
 	userToken := &models.UserToken{}
 	c.BindJSON(userLogin)
-	userObj, err := userDAO.Login(c.Request.Context(), userLogin)
+	userObj, err := userDAO.New().Login(c.Request.Context(), userLogin)
 	if err != nil {
 		c.Error(err)
 		return
@@ -60,7 +61,7 @@ func AdminLogin(c *gin.Context) {
 	userLogin := &models.UserLogin{}
 	userToken := &models.UserToken{}
 	c.BindJSON(userLogin)
-	userObj, err := userDAO.Login(c.Request.Context(), userLogin)
+	userObj, err := userDAO.New().Login(c.Request.Context(), userLogin)
 	if err != nil {
 		c.Error(err)
 		return
@@ -105,12 +106,22 @@ func UpdateUserPassword(c *gin.Context) {
 		c.Error(errors.ErrUnauthorized)
 		return
 	}
-	err = c.BindJSON(params)
+	err = c.BindJSON(&params)
 	if err != nil {
-		//test
 		c.Error(err)
 	}
-	err = userDAO.New().UpdateUserPassword(c, params.OldPassword, params.NewPassword, userID)
+	user, err := userDAO.New().GetUserByUserID(c.Request.Context(), userID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	userHashedPassword := user.Password
+	if !services.VerifyPassword(userHashedPassword, params.OldPassword) {
+		c.Error(errors.ErrInvalidPassword)
+		return
+	}
+	newHashedPassword := services.HashPassword(params.NewPassword)
+	err = userDAO.New().UpdateUserPassword(c, newHashedPassword, userID)
 	if err != nil {
 		c.Error(err)
 		return

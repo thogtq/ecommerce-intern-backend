@@ -22,12 +22,12 @@ type ProductDAO struct {
 	productCollection *mongo.Collection
 }
 
-func (pd *ProductDAO) Init() {
+func (pd *ProductDAO) New() *ProductDAO {
 	pd.productCollection = database.DBClient.Database("ecommerce").Collection("products")
+	return pd
 }
 
 func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilters) (*[]models.Product, int64, error) {
-	pd.Init()
 	productArray := []models.Product{}
 	counts := int64(0)
 	rowSkip := (filter.Page - 1) * filter.Limit
@@ -95,7 +95,6 @@ func (pd *ProductDAO) GetProducts(c context.Context, filter *models.ProductFilte
 }
 
 func (pd *ProductDAO) GetProductByID(c context.Context, productID primitive.ObjectID) (*models.Product, error) {
-	pd.Init()
 	product := &models.Product{}
 	filter := bson.M{"_id": productID}
 	result := pd.productCollection.FindOne(c, filter)
@@ -112,7 +111,6 @@ func (pd *ProductDAO) GetProductByID(c context.Context, productID primitive.Obje
 }
 
 func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Product) (string, error) {
-	pd.Init()
 	result, err := pd.productCollection.InsertOne(c, productObject)
 	if err != nil {
 		return "", errors.ErrInternal(err.Error())
@@ -121,7 +119,6 @@ func (pd *ProductDAO) InsertProduct(c context.Context, productObject *models.Pro
 }
 
 func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (string, error) {
-	pd.Init()
 	file.Filename = uuid.NewShortUUID() + path.Ext(file.Filename)
 	err := c.SaveUploadedFile(file, constants.PRODUCT_IMAGE_TEMP_DIR+file.Filename)
 	if err != nil {
@@ -130,7 +127,6 @@ func (pd *ProductDAO) UploadImage(c *gin.Context, file *multipart.FileHeader) (s
 	return file.Filename, nil
 }
 func (pd *ProductDAO) DeleteProduct(c context.Context, productID primitive.ObjectID) error {
-	pd.Init()
 	_, err := pd.productCollection.DeleteOne(c, bson.D{{Key: "_id", Value: productID}})
 	if err != nil {
 		return errors.ErrProductNotFound
@@ -138,7 +134,6 @@ func (pd *ProductDAO) DeleteProduct(c context.Context, productID primitive.Objec
 	return nil
 }
 func (pd *ProductDAO) UpdateProduct(c context.Context, product *models.Product) error {
-	pd.Init()
 	objectID, err := primitive.ObjectIDFromHex(product.ProductID.Hex())
 	if err != nil {
 		return errors.ErrProductNotFound

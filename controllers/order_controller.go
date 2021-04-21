@@ -38,7 +38,7 @@ func CreateOrder(c *gin.Context) {
 	//Calculate product amount(price*quantity) and subtotal(sum of amount)
 	for index, product := range order.ProductsOrder {
 		objectID, _ := primitive.ObjectIDFromHex(product.ProductID)
-		_product, err := productDAO.GetProductByID(c.Request.Context(), objectID)
+		_product, err := productDAO.New().GetProductByID(c.Request.Context(), objectID)
 		if err != nil {
 			c.Error(err)
 			return
@@ -49,7 +49,7 @@ func CreateOrder(c *gin.Context) {
 	}
 	order.Subtotal = subtotal
 	//Performs insert db
-	id, err := orderDAO.InsertOrder(c.Request.Context(), order)
+	id, err := orderDAO.New().InsertOrder(c.Request.Context(), order)
 	if err != nil {
 		c.Error(err)
 		return
@@ -67,7 +67,7 @@ func GetOrders(c *gin.Context) {
 	if filter.Limit == 0 {
 		filter.Limit = -1
 	}
-	orders, counts, err := orderDAO.GetOrders(c.Request.Context(), filter)
+	orders, counts, err := orderDAO.New().GetOrders(c.Request.Context(), filter)
 	if err != nil {
 		c.Error(err)
 		return

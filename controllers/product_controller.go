@@ -37,7 +37,7 @@ func CreateProduct(c *gin.Context) {
 		}
 
 	}
-	res, err := productDAO.InsertProduct(c.Request.Context(), productData)
+	res, err := productDAO.New().InsertProduct(c.Request.Context(), productData)
 	if err != nil {
 		c.Error(err)
 		return
@@ -57,7 +57,7 @@ func UploadProductImage(c *gin.Context) {
 		c.Error(errors.ErrInvalidExtension)
 		return
 	}
-	fileName, err := productDAO.UploadImage(c, file)
+	fileName, err := productDAO.New().UploadImage(c, file)
 	if err != nil {
 		c.Error(err)
 		return
@@ -78,7 +78,7 @@ func GetProducts(c *gin.Context) {
 	if filter.Page == 0 {
 		filter.Page = 1
 	}
-	products, counts, err := productDAO.GetProducts(c.Request.Context(), filter)
+	products, counts, err := productDAO.New().GetProducts(c.Request.Context(), filter)
 	if err != nil {
 		c.Error(err)
 		return
@@ -93,7 +93,7 @@ func GetProduct(c *gin.Context) {
 		c.Error(errors.ErrProductNotFound)
 		return
 	}
-	products, err := productDAO.GetProductByID(c.Request.Context(), objectID)
+	products, err := productDAO.New().GetProductByID(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -107,12 +107,12 @@ func DeleteProduct(c *gin.Context) {
 		c.Error(errors.ErrProductNotFound)
 		return
 	}
-	product, err := productDAO.GetProductByID(c.Request.Context(), objectID)
+	product, err := productDAO.New().GetProductByID(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	err = productDAO.DeleteProduct(c.Request.Context(), objectID)
+	err = productDAO.New().DeleteProduct(c.Request.Context(), objectID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -148,7 +148,7 @@ func UpdateProduct(c *gin.Context) {
 		}
 
 	}
-	err := productDAO.UpdateProduct(c.Request.Context(), productData)
+	err := productDAO.New().UpdateProduct(c.Request.Context(), productData)
 	if err != nil {
 		c.Error(err)
 		return
