@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"encoding/json"
 	"mime/multipart"
 	"path"
 	"strings"
@@ -139,7 +140,13 @@ func (pd *ProductDAO) UpdateProduct(c context.Context, product *models.Product) 
 		return errors.ErrProductNotFound
 	}
 	filter := bson.D{{Key: "_id", Value: objectID}}
-	result, err := pd.productCollection.ReplaceOne(c, filter, product)
+	update := bson.M{}
+
+	pBytes, _ := json.Marshal(product)
+	json.Unmarshal(pBytes, &update)
+	delete(update, "sold")
+	
+	result, err := pd.productCollection.UpdateOne(c, filter, bson.D{{Key: "$set", Value: update}})
 	if err != nil {
 		return errors.ErrInternal(err.Error())
 	}

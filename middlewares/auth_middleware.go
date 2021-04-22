@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/thogtq/ecommerce-server/controllers"
 	"github.com/thogtq/ecommerce-server/errors"
@@ -19,7 +17,6 @@ func AuthRequired() gin.HandlerFunc {
 			if err == errors.ErrExpiredToken && clientRefreshToken != "" {
 				claims, err = helpers.ValidateToken(clientRefreshToken)
 				if err != nil {
-					fmt.Print("trigger here!")
 					c.Error(errors.ErrUnauthorized)
 					c.Abort()
 					return
