@@ -30,7 +30,7 @@ func Login(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	userToken.AccessToken, userToken.RefreshToken, err = helpers.GenerateTokens(userObj.UserID.Hex(), userObj.Role)
+	userToken.AccessToken, userToken.RefreshToken, userToken.ExpiredAt, err = helpers.GenerateTokens(userObj.UserID.Hex(), userObj.Role)
 	if err != nil {
 		c.Error(err)
 		return
@@ -39,6 +39,7 @@ func Login(c *gin.Context) {
 		"user":         userObj,
 		"token":        userToken.AccessToken,
 		"refreshToken": userToken.RefreshToken,
+		"expiredAt":    userToken.ExpiredAt,
 	}))
 }
 func UpdateUser(c *gin.Context) {
@@ -70,14 +71,15 @@ func AdminLogin(c *gin.Context) {
 		c.Error(errors.ErrUnauthorized)
 		return
 	}
-	userToken.AccessToken, _, err = helpers.GenerateTokens(userObj.UserID.Hex(), userObj.Role)
+	userToken.AccessToken, _, userToken.ExpiredAt, err = helpers.GenerateTokens(userObj.UserID.Hex(), userObj.Role)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{
-		"user":  userObj,
-		"token": userToken.AccessToken,
+		"user":      userObj,
+		"token":     userToken.AccessToken,
+		"expiredAt": userToken.ExpiredAt,
 	}))
 }
 func GetUser(c *gin.Context) {
@@ -127,4 +129,19 @@ func UpdateUserPassword(c *gin.Context) {
 		return
 	}
 	c.JSON(200, SuccessResponse(gin.H{"result": "updated"}))
+}
+func GetNewAccessToken(c *gin.Context) {
+	userToken := &models.UserToken{}
+	userID, err := GetContextUserID(c)
+	user, err := userDAO.New().GetUserByUserID(c.Request.Context(), userID)
+	if err != nil {
+		c.Error(errors.ErrUserNotFound)
+		return
+	}
+	userToken.AccessToken, _, userToken.ExpiredAt, err = helpers.GenerateTokens(userID, user.Role)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, SuccessResponse(gin.H{"token": userToken.AccessToken, "expiredAt": userToken.ExpiredAt}))
 }

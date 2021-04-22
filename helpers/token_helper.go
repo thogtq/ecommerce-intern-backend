@@ -15,7 +15,9 @@ type SignedDetails struct {
 	jwt.StandardClaims
 }
 
-func GenerateTokens(userID, role string) (string, string, error) {
+func GenerateTokens(userID, role string) (string, string, int64, error) {
+	tokenExpireAt := time.Now().Local().Add(time.Hour * time.Duration(24)).Unix()
+	refreshTokenExpireAt := time.Now().Local().Add(time.Hour * time.Duration(168)).Unix()
 	SECRET_KEY := os.Getenv("JWT_SECRET")
 	if SECRET_KEY == "" {
 		log.Panicf("unable to load jwt secret key")
@@ -24,23 +26,25 @@ func GenerateTokens(userID, role string) (string, string, error) {
 		UserID: userID,
 		Role:   role,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
+			ExpiresAt: tokenExpireAt,
 		},
 	}
 	refreshClaims := &SignedDetails{
+		UserID: userID,
+		Role:   role,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(168)).Unix(),
+			ExpiresAt: refreshTokenExpireAt,
 		},
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		return "", "", errors.ErrInternal(err.Error())
+		return "", "", 0, errors.ErrInternal(err.Error())
 	}
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		return "", "", errors.ErrInternal(err.Error())
+		return "", "", 0, errors.ErrInternal(err.Error())
 	}
-	return token, refreshToken, nil
+	return token, refreshToken, tokenExpireAt, nil
 }
 func ValidateToken(signedToken string) (*SignedDetails, error) {
 	SECRET_KEY := os.Getenv("JWT_SECRET")
@@ -54,7 +58,10 @@ func ValidateToken(signedToken string) (*SignedDetails, error) {
 		},
 	)
 	if err != nil {
-		return nil, errors.ErrExpiredToken
+		if err.(*jwt.ValidationError).Errors == jwt.ValidationErrorExpired {
+			return nil, errors.ErrExpiredToken
+		}
+		return nil, errors.ErrInvalidToken
 	}
 	claims, ok := token.Claims.(*SignedDetails)
 	if !ok {

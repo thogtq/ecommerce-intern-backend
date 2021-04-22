@@ -15,6 +15,7 @@ func UserPublicRoute(r *gin.RouterGroup) {
 func UserPrivateRoute(r *gin.RouterGroup) {
 	r.PUT("/users/password", controllers.UpdateUserPassword)
 	r.GET("/users/", controllers.GetUser)
+	r.GET("/users/token", controllers.GetNewAccessToken)
 	r.PUT("/users/", controllers.UpdateUser)
 }
 func UserAdminRoute(r *gin.RouterGroup) {

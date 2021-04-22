@@ -10,8 +10,8 @@ type AppError struct {
 
 const INTERNAL_ERROR_CODE = "INTERNAL_ERROR"
 
-func (se AppError) Error() string {
-	return se.Message
+func (ae AppError) Error() string {
+	return ae.Message
 }
 func ErrorResponse(err error) H {
 	switch t := err.(type) {

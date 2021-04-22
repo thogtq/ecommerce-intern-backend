@@ -12,8 +12,9 @@ type User struct {
 	Role     string             `bson:"role,omitempty" json:"role,omitempty"`
 }
 type UserToken struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+	ExpiredAt    int64  `json:"expiredAt"`
 }
 type UserLogin struct {
 	Email    string `form:"email" json:"email" binding:"required"`
