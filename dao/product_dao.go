@@ -145,8 +145,26 @@ func (pd *ProductDAO) UpdateProduct(c context.Context, product *models.Product) 
 	pBytes, _ := json.Marshal(product)
 	json.Unmarshal(pBytes, &update)
 	delete(update, "sold")
-	
+	delete(update, "profit")
 	result, err := pd.productCollection.UpdateOne(c, filter, bson.D{{Key: "$set", Value: update}})
+	if err != nil {
+		return errors.ErrInternal(err.Error())
+	}
+	if result.MatchedCount == 0 {
+		return errors.ErrProductNotFound
+	}
+	return nil
+}
+func (pd *ProductDAO) UpdateProductSale(c context.Context, productID string, sold int, profit int) error {
+	ObjectID, err := primitive.ObjectIDFromHex(productID)
+	if err != nil {
+		return errors.ErrProductNotFound
+	}
+	update := bson.D{{"$inc", bson.D{
+		{"profit", profit},
+		{"sold", sold},
+	}}}
+	result, err := pd.productCollection.UpdateOne(c, bson.M{"_id": ObjectID}, update)
 	if err != nil {
 		return errors.ErrInternal(err.Error())
 	}

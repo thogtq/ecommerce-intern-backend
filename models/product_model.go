@@ -19,6 +19,7 @@ type Product struct {
 	Colors           []string           `bson:"colors" json:"colors"`
 	Quantity         int                `bson:"quantity" json:"quantity"`
 	Sold             int                `bson:"sold" json:"sold"`
+	Profit           int                `bson:"profit" json:"profit"`
 	Description      string             `bson:"description" json:"description"`
 }
 type ProductFilters struct {

@@ -72,3 +72,15 @@ func (od *OrderDAO) UpdateStatus(c context.Context, orderID, status string) erro
 	}
 	return nil
 }
+func (od *OrderDAO) GetOrderByID(c context.Context, orderID string) (*models.Order, error) {
+	order := &models.Order{}
+	result := od.orderCollection.FindOne(c, bson.M{"orderID": orderID})
+	if result.Err() == mongo.ErrNoDocuments {
+		return nil, errors.ErrOrderIDNotFound
+	}
+	err := result.Decode(order)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
+}

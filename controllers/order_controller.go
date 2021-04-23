@@ -87,7 +87,6 @@ func UpdateOrderStatus(c *gin.Context) {
 		bodyParams struct {
 			Status string `json:"status"`
 		}
-		//Get from DB
 		statusDB = []string{"Pending", "Completed", "Canceled"}
 	)
 	if orderID == "" {
@@ -102,6 +101,26 @@ func UpdateOrderStatus(c *gin.Context) {
 	if !services.Contains(statusDB, bodyParams.Status) {
 		c.Error(errors.ErrInvalidOrderStatus)
 		return
+	}
+	order, err := orderDAO.New().GetOrderByID(c.Request.Context(), orderID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	if order.Status != "Pending" || bodyParams.Status != "Canceled" {
+		for _, product := range order.ProductsOrder {
+			sold := product.Quantity
+			profit := product.Amount
+			if order.Status == "Completed" && bodyParams.Status == "Canceled" {
+				sold *= -1
+				profit *= -1
+			}
+			err := productDAO.UpdateProductSale(c.Request.Context(), product.ProductID, sold, profit)
+			if err != nil {
+				c.Error(err)
+				return
+			}
+		}
 	}
 	err = orderDAO.New().UpdateStatus(c.Request.Context(), orderID, bodyParams.Status)
 	if err != nil {
