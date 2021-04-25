@@ -3,6 +3,8 @@ package dao
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 	"mime/multipart"
 	"path"
 	"strings"
@@ -146,6 +148,8 @@ func (pd *ProductDAO) UpdateProduct(c context.Context, product *models.Product) 
 	json.Unmarshal(pBytes, &update)
 	delete(update, "sold")
 	delete(update, "profit")
+	delete(update, "reviews")
+	delete(update, "star")
 	result, err := pd.productCollection.UpdateOne(c, filter, bson.D{{Key: "$set", Value: update}})
 	if err != nil {
 		return errors.ErrInternal(err.Error())
@@ -165,6 +169,41 @@ func (pd *ProductDAO) UpdateProductSale(c context.Context, productID string, sol
 		{"sold", sold},
 	}}}
 	result, err := pd.productCollection.UpdateOne(c, bson.M{"_id": ObjectID}, update)
+	if err != nil {
+		return errors.ErrInternal(err.Error())
+	}
+	if result.MatchedCount == 0 {
+		return errors.ErrProductNotFound
+	}
+	return nil
+}
+func (pd *ProductDAO) UpdateProductReview(c context.Context, productID string, star int, review int) error {
+	var (
+		productReviews int
+		productStar    int
+		update         bson.D
+		newStar        int
+		newReviews     int
+	)
+	objectID, err := primitive.ObjectIDFromHex(productID)
+	if err != nil {
+		return errors.ErrProductNotFound
+	}
+	product, err := pd.GetProductByID(c, objectID)
+	if err != nil {
+		return err
+	}
+	productReviews = product.Reviews
+	productStar = product.Star
+
+	floatNewStar := float64((productStar*productReviews + star)) / float64((productReviews + review))
+	newStar = int(math.Round(floatNewStar))
+	newReviews = productReviews + review
+	update = bson.D{{"$set", bson.D{
+		{"star", newStar},
+		{"reviews", newReviews},
+	}}}
+	result, err := pd.productCollection.UpdateOne(c, bson.M{"_id": objectID}, update)
 	if err != nil {
 		return errors.ErrInternal(err.Error())
 	}

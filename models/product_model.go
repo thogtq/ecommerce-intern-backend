@@ -21,6 +21,8 @@ type Product struct {
 	Sold             int                `bson:"sold" json:"sold"`
 	Profit           int                `bson:"profit" json:"profit"`
 	Description      string             `bson:"description" json:"description"`
+	Reviews          int                `bson:"reviews" json:"reviews"`
+	Star             int                `bson:"star" json:"star"`
 }
 type ProductFilters struct {
 	Limit     int    `form:"limit"`

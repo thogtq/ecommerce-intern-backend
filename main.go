@@ -25,12 +25,14 @@ func main() {
 	{
 		routes.UserPublicRoute(public)
 		routes.ProductPublicRoute(public)
+		routes.ReviewPublicRoute(public)
 	}
 	authorized := r.Group("/api")
 	authorized.Use(middlewares.AuthRequired())
 	{
 		routes.UserPrivateRoute(authorized)
 		routes.OrderPrivateRoute(authorized)
+		routes.ReviewPrivateRoute(authorized)
 	}
 	admin := r.Group("/api")
 	admin.Use(middlewares.AdminAuthRequired())

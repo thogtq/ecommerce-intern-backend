@@ -1,6 +1,6 @@
 package errors
 
-var(
+var (
 	ErrInvalidExtension = &AppError{
 		HttpCode: 400,
 		Code:     "INVALID_FILE_EXTENSION",
@@ -10,5 +10,10 @@ var(
 		HttpCode: 400,
 		Code:     "NO_FILE",
 		Message:  "No file received",
+	}
+	ErrInvalidParameters = &AppError{
+		HttpCode: 400,
+		Code:     "INVALID_PARAMETERS",
+		Message:  "Paramters is invalid or missing",
 	}
 )
