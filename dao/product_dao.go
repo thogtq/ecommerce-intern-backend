@@ -3,7 +3,6 @@ package dao
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math"
 	"mime/multipart"
 	"path"

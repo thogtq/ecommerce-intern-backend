@@ -43,13 +43,9 @@ func (rd *ReviewDAO) DeleteReview(c context.Context, reviewID string) error {
 	return nil
 }
 func (rd *ReviewDAO) GetReviewsByProductID(c context.Context, productID string, filter *models.ReviewFilters) (*[]models.Review, int64, error) {
-	objectID, err := primitive.ObjectIDFromHex(productID)
-	if err != nil {
-		return nil, 0, errors.ErrProductNotFound
-	}
 	reviews := []models.Review{}
 	skipRows := (filter.Page - 1) * filter.Limit
-	findFilter := bson.M{"productID": objectID}
+	findFilter := bson.M{"productID": productID}
 	findOptions := options.Find()
 	findOptions.SetSort(bson.M{"reviewDate": -1})
 	findOptions.SetLimit(int64(filter.Limit))
