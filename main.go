@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/subosito/gotenv"
 	"github.com/thogtq/ecommerce-server/database"
 	"github.com/thogtq/ecommerce-server/middlewares"
@@ -12,6 +13,8 @@ func init() {
 	gotenv.Load()
 }
 func main() {
+	_ = godotenv.Load()
+
 	database.Connect()
 	defer database.Disconnect()
 	r := gin.Default()
